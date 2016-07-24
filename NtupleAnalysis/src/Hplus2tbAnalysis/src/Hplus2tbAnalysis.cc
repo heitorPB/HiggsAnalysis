@@ -215,10 +215,19 @@ void Hplus2tbAnalysis::process(Long64_t entry) {
 
 //====== GenParticle analysis
 	for (auto& p: fEvent.genparticles().getGenParticles()) {
+		int genP_pdgId = p.pdgId();
+		auto mother_index = p.mother();
+		int mother_pdgId = -66642137;
+
+		if (mother_index >= 0) {
+			const Particle<ParticleCollection<double>> m = fEvent.genparticles().getGenParticles()[mother_index];
+			mother_pdgId = m.pdgId();
+		}
+
 		// top quark
-		if(std::abs(p.pdgId()) == 6){
+		if(std::abs(genP_pdgId) == 6){
 			// if mother is H+
-			if (std::abs(p.mother()) == 37) {
+			if (std::abs(mother_pdgId) == 37) {
 				hHplusToTPt->Fill(p.pt());
 				hHplusToTEta->Fill(p.eta());
 				hHplusToTPhi->Fill(p.phi());
@@ -228,8 +237,8 @@ void Hplus2tbAnalysis::process(Long64_t entry) {
 				hAssociatedTPhi->Fill(p.phi());
 			}
 		// b quark
-		} else if (std::abs(p.pdgId()) == 5) {
-			if (std::abs(p.mother()) == 37) {
+		} else if (std::abs(genP_pdgId) == 5) {
+			if (std::abs(mother_pdgId) == 37) {
 				hHplusToBPt->Fill(p.pt());
 				hHplusToBEta->Fill(p.eta());
 				hHplusToBPhi->Fill(p.phi());
@@ -239,7 +248,7 @@ void Hplus2tbAnalysis::process(Long64_t entry) {
 				hAssociatedBPhi->Fill(p.phi());
 			}
 		// H+
-		} else if (std::abs(p.pdgId()) == 37) {
+		} else if (std::abs(genP_pdgId) == 37) {
 			hHplusPt->Fill(p.pt());
 			hHplusEta->Fill(p.eta());
 			hHplusPhi->Fill(p.phi());
