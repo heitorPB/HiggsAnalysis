@@ -81,6 +81,17 @@ private:
 	// number of jets
 	WrappedTH1 *hNGenJets;
 
+	// W (genParticles)
+	WrappedTH1 *h_W_fromTQuark_m;
+	WrappedTH1 *h_W_fromTQuark_Pt;
+	WrappedTH1 *h_W_fromTQuark_Eta;
+	WrappedTH1 *h_W_fromTQuark_Phi;
+
+	WrappedTH1 *h_W_fromAssociatedTQuark_m;
+	WrappedTH1 *h_W_fromAssociatedTQuark_Pt;
+	WrappedTH1 *h_W_fromAssociatedTQuark_Eta;
+	WrappedTH1 *h_W_fromAssociatedTQuark_Phi;
+
 	// reco objects
 	// MET
 	WrappedTH1 *hMetEt;
@@ -172,6 +183,16 @@ void Hplus2tbAnalysis::book(TDirectory *dir) {
 
 	hNGenJets = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "nGenJets",  "nGenJets", 40, 0, 40);
 
+	h_W_fromTQuark_m   = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "W_fromTQuark_m",   "W from T Quark M (GeV)", 20, 0, 200);
+	h_W_fromTQuark_Pt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "W_fromTQuark_Pt",  "W from T Quark pT",  100, 0, 1000);
+	h_W_fromTQuark_Eta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "W_fromTQuark_Eta", "W from T Quark eta", 50, -2.5, 2.5);
+	h_W_fromTQuark_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "W_fromTQuark_Phi", "W from T Quark phi", 100, -3.1416, 3.1416);
+
+	h_W_fromAssociatedTQuark_m   = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "W_fromAssociatedTQuark_m",   "W from Associated T Quark M (GeV)", 20, 0, 200);
+	h_W_fromAssociatedTQuark_Pt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "W_fromAssociatedTQuark_Pt",  "W from Associated T Quark pT",  100, 0, 1000);
+	h_W_fromAssociatedTQuark_Eta = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "W_fromAssociatedTQuark_Eta", "W from Associated T Quark eta", 50, -2.5, 2.5);
+	h_W_fromAssociatedTQuark_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "W_fromAssociatedTQuark_Phi", "W from Associated T Quark phi", 100, -3.1416, 3.1416);
+
 
 	hMetEt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "MetEt",  "MET",     150, 0, 1500);
 	hMetPhi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "MetPhi", "MET phi", 100, -3.1416, 3.1416);
@@ -218,10 +239,12 @@ void Hplus2tbAnalysis::process(Long64_t entry) {
 		int genP_pdgId = p.pdgId();
 		auto mother_index = p.mother();
 		int mother_pdgId = -66642137;
+		Particle<ParticleCollection<double>> mother;
 
 		if (mother_index >= 0) {
-			const Particle<ParticleCollection<double>> m = fEvent.genparticles().getGenParticles()[mother_index];
-			mother_pdgId = m.pdgId();
+			//const Particle<ParticleCollection<double>> m = fEvent.genparticles().getGenParticles()[mother_index];
+			mother = fEvent.genparticles().getGenParticles()[mother_index];
+			mother_pdgId = mother.pdgId();
 		}
 
 		// top quark
@@ -231,7 +254,7 @@ void Hplus2tbAnalysis::process(Long64_t entry) {
 				hHplusToTPt->Fill(p.pt());
 				hHplusToTEta->Fill(p.eta());
 				hHplusToTPhi->Fill(p.phi());
-			} else {
+			} else { // FIXME check if mother == gluon
 				hAssociatedTPt->Fill(p.pt());
 				hAssociatedTEta->Fill(p.eta());
 				hAssociatedTPhi->Fill(p.phi());
@@ -242,7 +265,7 @@ void Hplus2tbAnalysis::process(Long64_t entry) {
 				hHplusToBPt->Fill(p.pt());
 				hHplusToBEta->Fill(p.eta());
 				hHplusToBPhi->Fill(p.phi());
-			} else {
+			} else { // FIXME check if mother == gluon
 				hAssociatedBPt->Fill(p.pt());
 				hAssociatedBEta->Fill(p.eta());
 				hAssociatedBPhi->Fill(p.phi());
@@ -252,9 +275,39 @@ void Hplus2tbAnalysis::process(Long64_t entry) {
 			hHplusPt->Fill(p.pt());
 			hHplusEta->Fill(p.eta());
 			hHplusPhi->Fill(p.phi());
+		// W
+		} else if (std::abs(genP_pdgId) == 24) {
+			auto grandma_index = mother.mother();
+			auto grandma_pdgId = -66642137;
+
+			if (grandma_index) {
+				const Particle<ParticleCollection<double>> grandma = fEvent.genparticles().getGenParticles()[grandma_index];
+				grandma_pdgId = grandma.pdgId();
+			}
+
+			// W from T quark
+			if (std::abs(mother_pdgId) == 6) {
+				auto genP_p4 = p.p4();
+
+				// T quark from H+
+				if (std::abs(grandma_pdgId) == 37) {
+					h_W_fromTQuark_Pt->Fill(p.pt());
+					h_W_fromTQuark_Eta->Fill(p.eta());
+					h_W_fromTQuark_Phi->Fill(p.phi());
+					h_W_fromTQuark_m->Fill(genP_p4.mass());
+				// T quark from gluon: associated.
+				} else if (std::abs(grandma_pdgId) == 21) {
+					// This histos are empty. ???
+					h_W_fromAssociatedTQuark_Pt->Fill(p.pt());
+					h_W_fromAssociatedTQuark_Eta->Fill(p.eta());
+					h_W_fromAssociatedTQuark_Phi->Fill(p.phi());
+					h_W_fromAssociatedTQuark_m->Fill(genP_p4.mass());
+				}
+			}
 		}
 	}
 
+//====== GenJets analysis
 	double genHT = 0;
 	int nGenJets = 0;
 	for (const auto& j: fEvent.genjets()) {
