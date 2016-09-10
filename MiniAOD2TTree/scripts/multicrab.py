@@ -11,6 +11,7 @@ multicrab.py --status --url --url --verbose -d <task_dir>
 
 Get Output:
 multicrab.py --get --ask -d <task_dir> 
+multicrab.py --log
 
 Resubmit Failed Jobs:
 multicrab.py --resubmit --ask -d <task_dir>
@@ -25,6 +26,12 @@ The file datasets.py is used an an auxiliary file to determine the samples to be
 To retrieve some logs which refuse to come out otherwise:
 crab log <dir> --command=LCG --checksum=no
 crab getoutput <dir> --command=LCG --checksum=no
+
+Hints:
+To check whether you have write persmissions on a T2 centre use the command
+crab checkwrite --site
+For example:
+crab checkwrite --site T2_CH_CERN
 
 Useful Links:
 https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3ConfigurationFile
@@ -95,7 +102,7 @@ class colors:
 # Class Definition
 #================================================================================================ 
 class Report:
-    def __init__(self, name, allJobs, retrieved, finished, failed, retrievedLog, retrievedOut, status, dashboardURL):
+    def __init__(self, name, allJobs, retrieved, running, finished, failed, retrievedLog, retrievedOut, status, dashboardURL):
         '''
         Constructor 
         '''
@@ -103,6 +110,7 @@ class Report:
         self.name         = name
         self.allJobs      = str(allJobs)
         self.retrieved    = str(retrieved)
+        self.running      = str(running)
         self.dataset      = self.name.split("/")[-1]
         self.dashboardURL = dashboardURL
         self.status       = self.GetTaskStatusStyle(status)
@@ -304,7 +312,7 @@ def GetTaskReports(datasetPath, status, dashboardURL):
     
         # Assess JOB success/failure for task
         Verbose("Retrieving Files (1/2)")
-        finished, failed, retrievedLog, retrievedOut = RetrievedFiles(datasetPath, result, dashboardURL, False)
+        running, finished, failed, retrievedLog, retrievedOut = RetrievedFiles(datasetPath, result, dashboardURL, False)
            
         # Get the task logs & output ?        
         Verbose("Getting Task Logs")
@@ -324,13 +332,13 @@ def GetTaskReports(datasetPath, status, dashboardURL):
             
         # Assess JOB success/failure for task (again)
         Verbose("Retrieving Files (2/2)")
-        finished, failed, retrievedLog, retrievedOut = RetrievedFiles(datasetPath, result, dashboardURL, True)
+        running, finished, failed, retrievedLog, retrievedOut = RetrievedFiles(datasetPath, result, dashboardURL, True)
         retrieved = min(finished, retrievedLog, retrievedOut)
         alljobs   = len(result['jobList'])        
 
         # Append the report
         Verbose("Appending Report")
-        report = Report(datasetPath, alljobs, retrieved, finished, failed, retrievedLog, retrievedOut,  status, dashboardURL)
+        report = Report(datasetPath, alljobs, retrieved, running, finished, failed, retrievedLog, retrievedOut,  status, dashboardURL)
 
         # Determine if task is DONE or not
         Verbose("Determining if Task is DONE")
@@ -341,7 +349,7 @@ def GetTaskReports(datasetPath, status, dashboardURL):
     # Catch exceptions (Errors detected during execution which may not be "fatal")
     except:
         msg = sys.exc_info()[1]
-        report = Report(datasetPath, "?", "?", "?", "?", "?", "?", "?", dashboardURL) 
+        report = Report(datasetPath, "?", "?", "?", "?", "?", "?", "?", "?", dashboardURL) 
         Print("crab status failed with message \"%s\". Skipping ..." % ( msg ), False)
     return report
 
@@ -356,10 +364,11 @@ def GetTaskLogs(taskPath, retrievedLog, finished):
     if retrievedLog == finished:
         return
         
-    if opts.get:
+    if opts.get or opts.log:
         Verbose("Retrieved logs (%s) < finished (%s). Retrieving CRAB logs ..." % (retrievedLog, finished) )
         Touch(taskPath)
-        dummy = crabCommand('getlog', dir=taskPath)
+        #dummy = crabCommand('getlog', dir=taskPath)
+        dummy = crabCommand('getlog', 'command=LCG', 'checksum=no', dir=taskPath)
         # crab log <dir> --command=LCG --checksum=no #fixme: add support?
     else:
         Verbose("Retrieved logs (%s) < finished (%s). To retrieve CRAB logs relaunch script with --get option." % (retrievedLog, finished) )
@@ -584,8 +593,8 @@ def PrintTaskSummary(reportDict):
     reports  = []
     #msgAlign = "{:<3} {:<60} {:^20} {:>6} {:>1} {:<6}"
     #header   = msgAlign.format("#", "Dataset", "%s%s%s" % (colors.WHITE, "Status", colors.WHITE), "Ret.", "/", "Tot.")
-    msgAlign = "{:<3} {:<60} {:^20} {:>10} {:>10} {:>10} {:>10} {:>10}"
-    header   = msgAlign.format("#", "Dataset", "%s%s%s" % (colors.WHITE, "Status", colors.WHITE), "All", "Finished", "Failed", "Logs", "Output")
+    msgAlign = "{:<3} {:<60} {:^20} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}"
+    header   = msgAlign.format("#", "Dataset", "%s%s%s" % (colors.WHITE, "Status", colors.WHITE), "All", "Running", "Finished", "Failed", "Logs", "Output")
     #retrieved, finished, failed, retrievedLog, retrievedOut
     hLine    = "="*len(header)
     # reports.append("\n")
@@ -598,11 +607,12 @@ def PrintTaskSummary(reportDict):
         report  = reportDict[dataset]
         status  = report.status
         allJobs = report.allJobs
+        running = report.running
         finished= report.finished
         failed  = report.failed
         rLogs   = report.retrievedLog
         rOutput = report.retrievedOut
-        line   = msgAlign.format(i+1, dataset, status, allJobs, finished, failed, rLogs, rOutput)
+        line   = msgAlign.format(i+1, dataset, status, allJobs, running, finished, failed, rLogs, rOutput)
         #ret    = report.retrieved
         #tot    = report.allJobs
         #line   = msgAlign.format(i+1, dataset, status, ret,  "/", tot)
@@ -711,7 +721,7 @@ def RetrievedFiles(directory, crabResults, dashboardURL, verbose):
     # Print the dashboard url 
     if opts.url:
         Print(dashboardURL, False)
-    return finished, failed, retrievedLog, retrievedOut
+    return running, finished, failed, retrievedLog, retrievedOut
 
 
 def Exists(dataset,filename):
@@ -1151,7 +1161,7 @@ def CreateJob(opts, args):
         Verbose("Checking for already existing tasks (in case of resubmission)")
         fullDir = taskDirName + "/" + requestName
         if os.path.exists(fullDir) and os.path.isdir(fullDir):
-            Print("Dataset \"%s\" already exists! Skipping creation & submission steps" % (requestName))
+            Print("Dataset \"%s\" already exists! Skipping ..." % (requestName))
             continue 
 
         Verbose("Creating cfg file for dataset \"%s\"" % (dataset) )
@@ -1184,12 +1194,13 @@ if __name__ == "__main__":
     VERBOSE = False
     PSET    = "miniAOD2TTree_SignalAnalysisSkim_cfg.py"
     SITE    = "T2_FI_HIP"
-    DIRNAME = os.getcwd()
+    DIRNAME = ""
 
     parser = OptionParser(usage="Usage: %prog [options]")
     parser.add_option("--create"  , dest="create"    , default=False, action="store_true", help="Flag to create a CRAB job [default: False")
     parser.add_option("--status"  , dest="status"    , default=False, action="store_true", help="Flag to check the status of all CRAB jobs [default: False")
     parser.add_option("--get"     , dest="get"       , default=False, action="store_true", help="Get output of finished jobs [defaut: False]")
+    parser.add_option("--log"     , dest="log"       , default=False, action="store_true", help="Get log files of finished jobs [defaut: False]")
     parser.add_option("--resubmit", dest="resubmit"  , default=False, action="store_true", help="Resubmit all failed jobs [defaut: False]")
     parser.add_option("--kill"    , dest="kill"      , default=False, action="store_true", help="Kill all submitted jobs [defaut: False]")
     parser.add_option("-v", "--verbose", dest="verbose"    , default=VERBOSE, action="store_true", help="Verbose mode for debugging purposes [default: %s]" % (VERBOSE))
@@ -1201,11 +1212,14 @@ if __name__ == "__main__":
     #parser.add_option("--checksum", dest="checksum"  , default=False, action="store_true", help="Get output with adler32 checksum [default: False") #fixme
     (opts, args) = parser.parse_args()
 
+    if opts.create == False and opts.dirName == "":
+	opts.dirName = os.getcwd()
+
     if opts.create == True and opts.status == True:
         raise Exception("Cannot both create and check a CRAB job!")	    
     if opts.create == True:
         sys.exit( CreateJob(opts, args) )
-    elif opts.status == True or opts.get == True or opts.resubmit == True or opts.kill == True:
+    elif opts.status == True or opts.get == True or opts.log == True or opts.resubmit == True or opts.kill == True:
         if opts.dirName == "":
             raise Exception("Must provide a multiCRAB dir with the -d option!")            
         else:
