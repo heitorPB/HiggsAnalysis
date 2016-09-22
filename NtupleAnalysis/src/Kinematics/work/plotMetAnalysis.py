@@ -52,6 +52,7 @@ kwargs = {
 hNames  = []
 for var in ["Et", "Phi"]:
     hNames.append("genMET_" + var)
+    hNames.append("genMET_0leptonFromW_" + var)
     hNames.append("genMET_1leptonFromW_" + var)
     hNames.append("genMET_2leptonFromW_" + var)
 
@@ -159,8 +160,7 @@ def main():
         refHisto, otherHistos = GetHistosForPlotter(datasetsMgr, hName, **kwargs)
         p = plots.ComparisonManyPlot(refHisto, otherHistos)
 	for bla in p.histoMgr.getHistos():
-            print(bla.getRootHisto().GetName())
-            print(bla.getRootHisto().GetEntries())
+            print(bla.getRootHisto().GetName() + "\t" + str(bla.getRootHisto().GetEntries()))
 
     return
 

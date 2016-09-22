@@ -73,6 +73,8 @@ private:
 
   // MET discriminators
   // lepton from W. Not checking for lepton from b
+  WrappedTH1 *h_genMET_0leptonFromW_Et;
+  WrappedTH1 *h_genMET_0leptonFromW_Phi;
   WrappedTH1 *h_genMET_1leptonFromW_Et;
   WrappedTH1 *h_genMET_1leptonFromW_Phi;
   WrappedTH1 *h_genMET_2leptonFromW_Et;
@@ -284,6 +286,8 @@ void Kinematics::book(TDirectory *dir) {
   h_genHT_GenJets     =  fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genHT_GenJets"      , ";GenJ H_{T} (GeV)"             ,  75,  0.0, +1500.0);
 
   // MET analysis
+  h_genMET_0leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_0leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       60,       0.0,   +300.0);
+  h_genMET_0leptonFromW_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_0leptonFromW_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
   h_genMET_1leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_1leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       60,       0.0,   +300.0);
   h_genMET_1leptonFromW_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_1leptonFromW_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
   h_genMET_2leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_2leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       60,       0.0,   +300.0);
@@ -669,7 +673,10 @@ void Kinematics::process(Long64_t entry) {
 
   // MET analysis
   // evetns with lepton from a W
-  if (lepton_from_Wplus + lepton_from_Wminus == 1) {
+  if (lepton_from_Wplus + lepton_from_Wminus == 0) {
+	  h_genMET_0leptonFromW_Et->Fill(fEvent.genMET().et());
+	  h_genMET_0leptonFromW_Phi->Fill(fEvent.genMET().Phi());
+  } else if (lepton_from_Wplus + lepton_from_Wminus == 1) {
 	  h_genMET_1leptonFromW_Et->Fill(fEvent.genMET().et());
 	  h_genMET_1leptonFromW_Phi->Fill(fEvent.genMET().Phi());
   } else if (lepton_from_Wplus + lepton_from_Wminus == 2) {
