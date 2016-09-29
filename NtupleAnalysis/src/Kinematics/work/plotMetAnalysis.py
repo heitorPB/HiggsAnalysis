@@ -45,7 +45,7 @@ kwargs = {
     "cutLine"        : False,
     "cutLessthan"    : False,
     "cutFillColour"  : ROOT.kAzure-4,
-    "rebinFactor"    : 4,
+    "rebinFactor"    : 6,
 }
 
 
@@ -55,6 +55,11 @@ for var in ["Et", "Phi"]:
     hNames.append("genMET_0leptonFromW_" + var)
     hNames.append("genMET_1leptonFromW_" + var)
     hNames.append("genMET_2leptonFromW_" + var)
+    hNames.append("genMET_0leptonFromB_" + var)
+    hNames.append("genMET_1leptonFromB_" + var)
+    hNames.append("genMET_2leptonFromB_" + var)
+    hNames.append("genMET_3leptonFromB_" + var)
+    hNames.append("genMET_4leptonFromB_" + var)
 
 
 #================================================================================================

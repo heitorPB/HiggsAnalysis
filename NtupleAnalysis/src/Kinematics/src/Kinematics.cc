@@ -79,6 +79,17 @@ private:
   WrappedTH1 *h_genMET_1leptonFromW_Phi;
   WrappedTH1 *h_genMET_2leptonFromW_Et;
   WrappedTH1 *h_genMET_2leptonFromW_Phi;
+  // semi-leptonic b decays
+  WrappedTH1 *h_genMET_0leptonsFromB_Et;
+  WrappedTH1 *h_genMET_0leptonsFromB_Phi;
+  WrappedTH1 *h_genMET_1leptonsFromB_Et;
+  WrappedTH1 *h_genMET_1leptonsFromB_Phi;
+  WrappedTH1 *h_genMET_2leptonsFromB_Et;
+  WrappedTH1 *h_genMET_2leptonsFromB_Phi;
+  WrappedTH1 *h_genMET_3leptonsFromB_Et;
+  WrappedTH1 *h_genMET_3leptonsFromB_Phi;
+  WrappedTH1 *h_genMET_4leptonsFromB_Et;
+  WrappedTH1 *h_genMET_4leptonsFromB_Phi;
 
   // GenParticles: BQuarks
   WrappedTH1 *h_BQuarks_N;
@@ -243,6 +254,10 @@ void Kinematics::book(TDirectory *dir) {
 
 
   // Fixed binning
+  const int nBinsMet   = 80;
+  const double minMet  = 0;
+  const double maxMet  = 400;
+
   const int nBinsPt   = cfg_PtBinSetting.bins();
   const double minPt  = cfg_PtBinSetting.min();
   const double maxPt  = cfg_PtBinSetting.max();
@@ -281,17 +296,29 @@ void Kinematics::book(TDirectory *dir) {
 
 
   // Event Variables
-  h_genMET_Et         =  fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMET_Et"          , ";Gen E_{T}^{miss} (GeV)"       , 60,  0.0,   +300.0);
+  h_genMET_Et         =  fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMET_Et"          , ";Gen E_{T}^{miss} (GeV)",              nBinsMet, minMet, maxMet);
   h_genMET_Phi        =  fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_Phi"         , ";Gen E_{T}^{miss} #phi (rads)" , nBinsPhi, minPhi, maxPhi);
   h_genHT_GenJets     =  fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genHT_GenJets"      , ";GenJ H_{T} (GeV)"             ,  75,  0.0, +1500.0);
 
   // MET analysis
-  h_genMET_0leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_0leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       60,       0.0,   +300.0);
+  h_genMET_0leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_0leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
   h_genMET_0leptonFromW_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_0leptonFromW_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
-  h_genMET_1leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_1leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       60,       0.0,   +300.0);
+  h_genMET_1leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_1leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
   h_genMET_1leptonFromW_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_1leptonFromW_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
-  h_genMET_2leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_2leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       60,       0.0,   +300.0);
+  h_genMET_2leptonFromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_2leptonFromW_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
   h_genMET_2leptonFromW_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_2leptonFromW_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
+
+  h_genMET_0leptonsFromB_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_0leptonFromB_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
+  h_genMET_0leptonsFromB_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_0leptonFromB_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
+  h_genMET_1leptonsFromB_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_1leptonFromB_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
+  h_genMET_1leptonsFromB_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_1leptonFromB_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
+  h_genMET_2leptonsFromB_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_2leptonFromB_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
+  h_genMET_2leptonsFromB_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_2leptonFromB_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
+  h_genMET_3leptonsFromB_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_3leptonFromB_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
+  h_genMET_3leptonsFromB_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_3leptonFromB_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
+  h_genMET_4leptonsFromB_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital,       dir, "genMET_4leptonFromB_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
+  h_genMET_4leptonsFromB_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kInformative, dir, "genMET_4leptonFromB_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
+
 
   // GenParticles: B-quarks
   h_BQuarks_N   = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "BQuarks_N" , ";N (b-quarks)" , 10, -0.5, +9.5);
@@ -516,6 +543,8 @@ void Kinematics::process(Long64_t entry) {
 
   short lepton_from_Wplus = 0;
   short lepton_from_Wminus = 0;
+  std::vector<double> leptonic_b_decays_met_et;
+  std::vector<double> leptonic_b_decays_met_phi;
 
   // Define the table
   Table table("Evt | Index | PdgId | Status | Charge | Pt | Eta | Phi | E | Vertex (mm) | Lxy (mm) | d0 (mm) | Mothers | Daughters |", "Text"); //LaTeX or Text
@@ -615,27 +644,8 @@ void Kinematics::process(Long64_t entry) {
 	if ( mcTools.HasMother(p, +6) ) tbWPlus_BQuark_p4  = genP_p4;
 	if ( mcTools.HasMother(p, -6) ) tbWMinus_BQuark_p4 = genP_p4;
 
-	//mcTools.PrintGenParticle(p);
-        //if (p.isPromptFinalState())
-	//mcTools.PrintGenDaughters(p);
-
-	//// for the semi-leptonic decays: mother = gluon || H+ || t
-	//genParticle mom =  fEvent.genparticles().getGenParticles()[p.mothers()[0]];
-	//if ((std::abs(mom.pdgId()) == 21) || (std::abs(mom.pdgId()) == 37)  || (std::abs(mom.pdgId()) == 6))
-	    //mcTools.PrintGenParticle(p);
-	   // mcTools.PrintGenDaughters(p);
-	//	std::cout << "Semi. m = " << mom.pdgId() << "\n";
       }// b-quarks
 
-    // B-hadron
-    if (((std::abs(genP_pdgId) >= 500) && (std::abs(genP_pdgId)  < 600)) || ((std::abs(genP_pdgId) >= 5000) && (std::abs(genP_pdgId)  < 6000))) {
-	    //mcTools.PrintGenParticle(p);
-	    //mcTools.PrintGenParticle(m);
-	    //mcTools.PrintGenDaughters(p);
-	    //if (mcTools.HasMother(p, +5) || mcTools.HasMother(p, -5))
-	      //mcTools.PrintGenParticle(p);
-	     //   std::cout << "pdgId: " << p.pdgId() << "\tmother: " << m.pdgId() << "\n";
-    }
 
     // Quarks
     if (mcTools.IsQuark(genP_pdgId)) {
@@ -663,13 +673,36 @@ void Kinematics::process(Long64_t entry) {
         // from W-
 	} else if (mcTools.HasMother(p, -24)) {
 		lepton_from_Wminus++;
+	// if lepton from a Hadron
+	} else if (p.isDirectHadronDecayProduct()) {
+		// if hadron from a b
+		//if (mcTools.HasMother(p, 5) || mcTools.HasMother(p, -5))
+                	//mcTools.PrintGenParticle(p);
+        }
+    }
+
+    // B-hadron
+    // FIXME something is not right here. There are more leptonic b decays than b quarks
+    if (((std::abs(genP_pdgId) >= 500) && (std::abs(genP_pdgId)  < 600)) || ((std::abs(genP_pdgId) >= 5000) && (std::abs(genP_pdgId)  < 6000))) {
+	// check if B-hadron is from b quark from the diagram
+	if (!p.isHardProcess()) {
+		if (mcTools.HasMother(p, 5) || mcTools.HasMother(p, -5)) {
+			//mcTools.PrintGenParticle(p);
+			// check if lepton as daughter
+			for (auto k: genP_daughters) {
+				auto _d = fEvent.genparticles().getGenParticles()[k];
+
+				if (mcTools.IsChargedLepton(_d.pdgId())) {
+					leptonic_b_decays_met_et.push_back(fEvent.genMET().et());
+					leptonic_b_decays_met_phi.push_back(fEvent.genMET().phi());
+				}
+			}
+		}
 	}
     }
 
   }//for-loop: genParticles
 
-  // TODO
-  //   HISTOGRAMS for the combinations of semileptonic decays and leptons from W
 
   // MET analysis
   // evetns with lepton from a W
@@ -683,7 +716,31 @@ void Kinematics::process(Long64_t entry) {
 	  h_genMET_2leptonFromW_Et->Fill(fEvent.genMET().et());
 	  h_genMET_2leptonFromW_Phi->Fill(fEvent.genMET().Phi());
   }
-  //std::cout << lepton_from_Wplus + lepton_from_Wminus << " leptons from a W\n";
+  std::cout << lepton_from_Wplus + lepton_from_Wminus << " leptons from a W\t";
+  std::cout << leptonic_b_decays_met_et.size() << " leptons from a b\n";
+  unsigned int leptons_from_b = leptonic_b_decays_met_et.size();
+  switch(leptons_from_b) {
+  case 0:
+	  h_genMET_0leptonsFromB_Et->Fill(fEvent.genMET().et());
+	  h_genMET_0leptonsFromB_Phi->Fill(fEvent.genMET().et());
+	  break;
+  case 1:
+	  h_genMET_1leptonsFromB_Et->Fill(fEvent.genMET().et());
+	  h_genMET_1leptonsFromB_Phi->Fill(fEvent.genMET().et());
+	  break;
+  case 2:
+	  h_genMET_2leptonsFromB_Et->Fill(fEvent.genMET().et());
+	  h_genMET_2leptonsFromB_Phi->Fill(fEvent.genMET().et());
+	  break;
+  case 3:
+	  h_genMET_3leptonsFromB_Et->Fill(fEvent.genMET().et());
+	  h_genMET_3leptonsFromB_Phi->Fill(fEvent.genMET().et());
+	  break;
+  case 4:
+	  h_genMET_4leptonsFromB_Et->Fill(fEvent.genMET().et());
+	  h_genMET_4leptonsFromB_Phi->Fill(fEvent.genMET().et());
+	  break;
+  }
 
   if (cfg_Verbose) table.Print();
 
