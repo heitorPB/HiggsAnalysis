@@ -52,14 +52,36 @@ kwargs = {
 hNames  = []
 for var in ["Et", "Phi"]:
     hNames.append("genMET_" + var)
+
     hNames.append("genMET_0leptonFromW_" + var)
     hNames.append("genMET_1leptonFromW_" + var)
     hNames.append("genMET_2leptonFromW_" + var)
+
     hNames.append("genMET_0leptonFromB_" + var)
     hNames.append("genMET_1leptonFromB_" + var)
     hNames.append("genMET_2leptonFromB_" + var)
     hNames.append("genMET_3leptonFromB_" + var)
     hNames.append("genMET_4leptonFromB_" + var)
+
+    hNames.append("genMET_leptons_0FromB_0FromW_" + var)
+    hNames.append("genMET_leptons_0FromB_1FromW_" + var)
+    hNames.append("genMET_leptons_0FromB_2FromW_" + var)
+
+    hNames.append("genMET_leptons_1FromB_0FromW_" + var)
+    hNames.append("genMET_leptons_1FromB_1FromW_" + var)
+    hNames.append("genMET_leptons_1FromB_2FromW_" + var)
+
+    hNames.append("genMET_leptons_2FromB_0FromW_" + var)
+    hNames.append("genMET_leptons_2FromB_1FromW_" + var)
+    hNames.append("genMET_leptons_2FromB_2FromW_" + var)
+
+    hNames.append("genMET_leptons_3FromB_0FromW_" + var)
+    hNames.append("genMET_leptons_3FromB_1FromW_" + var)
+    hNames.append("genMET_leptons_3FromB_2FromW_" + var)
+
+    hNames.append("genMET_leptons_4FromB_0FromW_" + var)
+    hNames.append("genMET_leptons_4FromB_1FromW_" + var)
+    hNames.append("genMET_leptons_4FromB_2FromW_" + var)
 
 
 #================================================================================================
