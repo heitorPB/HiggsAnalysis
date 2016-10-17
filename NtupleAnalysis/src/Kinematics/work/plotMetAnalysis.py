@@ -29,7 +29,7 @@ kwargs = {
     "analysis"       : "Kinematics",
     "savePath"       : "plots/metAnalysis/",
     "refDataset"     : "ChargedHiggs_HplusTB_HplusToTB_M_200",
-    "rmDataset"      : [""], #["ChargedHiggs_HplusTB_HplusToTB_M_300"], #["QCD"],
+    "rmDataset"      : ["ChargedHiggs_HplusTB_HplusToTB_M_180", "ChargedHiggs_HplusTB_HplusToTB_M_220", "ChargedHiggs_HplusTB_HplusToTB_M_250", "ChargedHiggs_HplusTB_HplusToTB_M_350"], #["QCD"],
     "saveFormats"    : [".png", ".pdf", ".C"],
     "normalizeTo"    : "One", #One", "XSection", "Luminosity"
     "createRatio"    : False,
