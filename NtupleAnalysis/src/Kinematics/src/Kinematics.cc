@@ -126,6 +126,9 @@ private:
   WrappedTH1 *h_genMET_leptons_4FromB_2FromW_Et;
   WrappedTH1 *h_genMET_leptons_4FromB_2FromW_Phi;
 
+  // GenParticles: number of b quarks vs B Hadrons
+  WrappedTH2 *h_genP_n_b_B;
+
   // GenParticles: BQuarks
   WrappedTH1 *h_BQuarks_N;
   WrappedTH1 *h_BQuark1_Pt;
@@ -389,6 +392,9 @@ void Kinematics::book(TDirectory *dir) {
   h_genMET_leptons_4FromB_2FromW_Et  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMET_leptons_4FromB_2FromW_Et",  ";Gen E_{T}^{miss} (GeV)",       nBinsMet, minMet, maxMet);
   h_genMET_leptons_4FromB_2FromW_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMET_leptons_4FromB_2FromW_Phi", ";Gen E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
 
+  // GenParticles: number of b quarks vs B Hadrons
+  h_genP_n_b_B = fHistoWrapper.makeTH<TH2F>(HistoLevel::kVital, dir, "genP_n_b_B", ";#N b;#N B", 7, 0, 7, 7, 0, 7);
+
   // GenParticles: B-quarks
   h_BQuarks_N   = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "BQuarks_N" , ";N (b-quarks)" , 10, -0.5, +9.5);
   h_BQuark1_Pt  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "BQuark1_Pt", ";p_{T} (GeV/c)" , nBinsPt, minPt, maxPt);
@@ -610,9 +616,12 @@ void Kinematics::process(Long64_t entry) {
   math::XYZTLorentzVector tbWMinus_Wqq_Quark_p4;
   math::XYZTLorentzVector tbWMinus_Wqq_AntiQuark_p4;
 
+  // counters
   short lepton_from_Wplus = 0;
   short lepton_from_Wminus = 0;
   short lepton_from_B = 0;
+  short bQuarks =  0;
+  short BHadrons = 0;
 
   // Define the table
   Table table("Evt | Index | PdgId | Status | Charge | Pt | Eta | Phi | E | Vertex (mm) | Lxy (mm) | d0 (mm) | Mothers | Daughters |", "Text"); //LaTeX or Text
@@ -707,11 +716,10 @@ void Kinematics::process(Long64_t entry) {
     // b-quarks
     if(std::abs(genP_pdgId) == 5)
       {
-
+	bQuarks++;
 	bQuarks_p4.push_back( genP_p4 );
 	if ( mcTools.HasMother(p, +6) ) tbWPlus_BQuark_p4  = genP_p4;
 	if ( mcTools.HasMother(p, -6) ) tbWMinus_BQuark_p4 = genP_p4;
-
       }// b-quarks
 
 
@@ -752,19 +760,25 @@ void Kinematics::process(Long64_t entry) {
     // all long lived particles
     if (p.isPromptDecayed()) {
 	// B-hadron
-	// FIXME something is not right here. There are more leptonic b decays than b quarks
+	// FIXME something is not right here. There are more leptonic B decays than b quarks
 	if (((std::abs(genP_pdgId) >= 500) && (std::abs(genP_pdgId)  < 600)) || ((std::abs(genP_pdgId) >= 5000) && (std::abs(genP_pdgId)  < 6000))) {
 		// check if B-hadron is from b quark from the diagram
+		// TODO from the diagram?
 		if (!p.isHardProcess()) {
 			if (mcTools.HasMother(p, 5) || mcTools.HasMother(p, -5)) {
+				BHadrons++;
 				//mcTools.PrintGenParticle(p);
 				// check if lepton as daughter
+				bool found_lepton = false;
 				for (auto k: genP_daughters) {
 					auto _d = fEvent.genparticles().getGenParticles()[k];
 
 					if (mcTools.IsChargedLepton(_d.pdgId())) {
-						lepton_from_B++;
+						found_lepton = true;
 					}
+				}
+				if (found_lepton) {
+					lepton_from_B++;
 				}
 			}
 		}
@@ -902,7 +916,7 @@ void Kinematics::process(Long64_t entry) {
 	}
 	break;
   }
-
+  h_genP_n_b_B->Fill(bQuarks, BHadrons);
 
   if (cfg_Verbose) table.Print();
 

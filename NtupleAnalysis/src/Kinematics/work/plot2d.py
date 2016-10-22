@@ -30,10 +30,10 @@ import ROOT
 #================================================================================================
 kwargs = {
     "analysis"       : "Kinematics",
-    #"savePath"       : "/Users/attikis/latex/talks/post_doc.git/HPlus/HIG-XY-XYZ/2016/Kinematics_06September2016/figures/M_200/",
-    "savePath"       : None,
-    "refDataset"     : "QCD", #ChargedHiggs_HplusTB_HplusToTB_M_, TT, QCD
-    "saveFormats"    : [".png"],#, ".pdf"],
+    "savePath"       : "plots/2d/",
+    "refDataset"     : "ChargedHiggs_HplusTB_HplusToTB_M_200", #, TT, QCD
+    "rmDataset"      : ["ChargedHiggs_HplusTB_HplusToTB_M_180", "ChargedHiggs_HplusTB_HplusToTB_M_220", "ChargedHiggs_HplusTB_HplusToTB_M_250", "ChargedHiggs_HplusTB_HplusToTB_M_350", "ChargedHiggs_HplusTB_HplusToTB_M_400", "ChargedHiggs_HplusTB_HplusToTB_M_500"], #["QCD"],
+    "saveFormats"    : [".png", ".pdf"],
     "normalizeTo"    : "One", #One", "XSection", "Luminosity"
     "zMin"           : 1e-5,
     "zMax"           : 5e-2,
@@ -53,31 +53,11 @@ kwargs = {
     "cutLine"        : False,
     "cutLessthan"    : False,
     "cutFillColour"  : ROOT.kAzure-4,
-    # "rmDataset"      : ["ChargedHiggs_HplusTB_HplusToTB_M_300"], #"QCD"]
 }
 
 
 hNames = [
-    "MaxDiJetMass_dEta_Vs_dPhi",
-    "MaxDiJetMass_dRap_Vs_dPhi",
-    "BQuark1_BQuark2_dEta_Vs_dPhi",
-    "BQuark1_BQuark3_dEta_Vs_dPhi",
-    "BQuark1_BQuark4_dEta_Vs_dPhi",
-    "BQuark2_BQuark3_dEta_Vs_dPhi",
-    "BQuark2_BQuark4_dEta_Vs_dPhi",
-    "BQuark3_BQuark4_dEta_Vs_dPhi",
-    "BQuarkPair_dRMin_Eta1_Vs_Eta2",
-    "BQuarkPair_dRMin_Phi1_Vs_Phi2",
-    "BQuarkPair_dRMin_Pt1_Vs_Pt2",
-    "BQuarkPair_dRMin_dEta_Vs_dPhi",
-#    "Htb_tbW_bqq_dRMax_dRap_Vs_dPhi",
-#    "gtt_tbW_bqq_dRMax_dRap_Vs_dPhi",
-    "tbWPlus_bqq_dRMax_dRap_Vs_dPhi",
-    "tbWMinus_bqq_dRMax_dRap_Vs_dPhi",
-    "Jet1Jet2_dEta_Vs_Jet3Jet4_dEta",
-    "Jet1Jet2_dPhi_Vs_Jet3Jet4_dPhi",
-    "Jet1Jet2_dEta_Vs_Jet1Jet2_Mass",
-    "Jet3Jet4_dEta_Vs_Jet3Jet4_Mass",
+    "genP_n_b_B",
 ]
 
 
@@ -180,6 +160,8 @@ def main():
         #histograms.addText(0.73, 0.88, plots._legendLabels[kwargs.get("refDataset")], 17)
         
         # Save canvas under custom dir
+	if not os.path.exists(savePath):
+		os.mkdir(savePath)
         SaveAs(p, savePath, saveName, kwargs.get("saveFormats"))
 
     return
