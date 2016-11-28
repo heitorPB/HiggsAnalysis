@@ -20,10 +20,10 @@ struct PtComparator
 };
 
 
-class Kinematics: public BaseSelector {
+class MetBreakDown: public BaseSelector {
 public:
-  explicit Kinematics(const ParameterSet& config, const TH1* skimCounters);
-  virtual ~Kinematics() {}
+  explicit MetBreakDown(const ParameterSet& config, const TH1* skimCounters);
+  virtual ~MetBreakDown() {}
 
   /// Books histograms
   virtual void book(TDirectory *dir) override;
@@ -246,9 +246,9 @@ private:
 };
 
 #include "Framework/interface/SelectorFactory.h"
-REGISTER_SELECTOR(Kinematics);
+REGISTER_SELECTOR(MetBreakDown);
 
-Kinematics::Kinematics(const ParameterSet& config, const TH1* skimCounters)
+MetBreakDown::MetBreakDown(const ParameterSet& config, const TH1* skimCounters)
   : BaseSelector(config, skimCounters),
     cfg_Verbose(config.getParameter<bool>("verbose")),
     PSet_JetSelection(config.getParameter<ParameterSet>("JetSelection")),
@@ -279,7 +279,7 @@ Kinematics::Kinematics(const ParameterSet& config, const TH1* skimCounters)
     cSubPassedHtCut(fEventCounter.addSubCounter("Preselections","HT Cut"))
 { }
 
-void Kinematics::book(TDirectory *dir) {
+void MetBreakDown::book(TDirectory *dir) {
 
   Table cuts("Variable | Jets | Electron | Muon | HT", "Text"); //LaTeX or Text
   cuts.AddRowColumn(0, "Pt (GeV/c)");
@@ -538,12 +538,12 @@ void Kinematics::book(TDirectory *dir) {
   return;
 }
 
-void Kinematics::setupBranches(BranchManager& branchManager) {
+void MetBreakDown::setupBranches(BranchManager& branchManager) {
   fEvent.setupBranches(branchManager);
 }
 
 
-void Kinematics::process(Long64_t entry) {
+void MetBreakDown::process(Long64_t entry) {
 
   if ( !fEvent.isMC() ) return;
 
