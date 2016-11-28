@@ -128,7 +128,7 @@ def GetSaveName(savePathNew, hName, **kwargs):
         if f in hName:
             Print("Replacing forbidden character \"%s\" with \"%s\" in saveName  \"%s\"" % (f, replacement, hName))
             hName = hName.replace(f, replacement)
-            
+
     if cutDirection == None:
         saveName = os.path.join(savePathNew, hName)
     elif cutDirection == ">":
@@ -534,6 +534,73 @@ def GetHistosForPlotter(datasetsMgr, histoName, **kwargs):
             raise Exception("The \"other\" histogram list empty!")
     return refHisto, otherHistos
 
+
+
+def GetHistosForPlotterComparison(datasetsMgr, histoRefName, histoNames, **kwargs):
+    '''
+    '''
+    HasKeys(["refDataset", "drawStyle", "legStyle"], **kwargs)
+    refHisto     = None
+    otherHistos  = []
+    refDataset   = kwargs.get("refDataset")
+    drawStyle    = kwargs.get("drawStyle")
+    legStyle     = kwargs.get("legStyle")
+    normalizeTo  = kwargs.get("normalizeTo")
+    histoType    = None
+
+    # For-loop: All dataset objects
+    for d in datasetsMgr.getAllDatasets():
+        rootHisto = datasetsMgr.getDataset(d.getName()).getDatasetRootHisto(histoRefName)
+
+        # Apply Normalization
+        NormalizeRootHisto(rootHisto, d.isMC(), normalizeTo)
+
+        # Get the histogram
+        histo     = rootHisto.getHistogram()
+        histoType = type(histo)
+        legName   = plots._legendLabels[d.getName()]
+
+        # Apply Styling
+        styleDict[d.getName()].apply(histo)
+
+        #if d.getName() == refDataset:
+            #histo.SetFillStyle(3001)
+        #    refHisto = histograms.Histo(histo, legName, legStyle, drawStyle)
+        refHisto = histograms.Histo(histo, legName, legStyle, drawStyle)
+        refHisto.setName(histoRefName)
+        refHisto.setLegendLabel(histoRefName)
+        #else:
+        #    #otherHisto = histograms.Histo(histo, legName, legStyle, drawStyle)
+        #    #otherHisto = histograms.Histo(histo, legName, "F", "HIST9")
+        #    otherHisto = histograms.Histo(histo, legName, "LP", "P") # fixme alex
+        #    otherHistos.append(otherHisto)
+
+    for d in datasetsMgr.getAllDatasets():
+        # counter
+        hCounter = 0
+	stls = ["ChargedHiggs_HplusTB_HplusToTB_M_300", "ChargedHiggs_HplusTB_HplusToTB_M_400", "ChargedHiggs_HplusTB_HplusToTB_M_500", "QCD", "TT"]
+        for h in histoNames:
+            rootHisto = datasetsMgr.getDataset(d.getName()).getDatasetRootHisto(h)
+            NormalizeRootHisto(rootHisto, d.isMC(), normalizeTo)
+            histo     = rootHisto.getHistogram()
+            histoType = type(histo)
+            legName   = plots._legendLabels[d.getName()]
+            #styleDict[d.getName()].apply(histo)
+            styleDict[stls[hCounter]].apply(histo)
+            otherHisto = histograms.Histo(histo, legName, "LP", "P") # fixme alex
+            otherHisto.setName(h)
+            otherHisto.setLegendLabel(h)
+            otherHistos.append(otherHisto)
+            hCounter += 1
+
+    if refHisto == None:
+        raise Exception("The \"reference\" histogram is None!")
+    if len(otherHistos) < 1:
+        if( "TH2" in str(histoType) ):
+            otherHistos.append("EMPTY") # fixme: temporary fix, otherwise crash for TH2
+        else:
+            raise Exception("The \"other\" histogram list empty!")
+    return refHisto, otherHistos
 
 
 def ApplyHistoStyles(datasetsMgr, histoName, **kwargs):

@@ -27,12 +27,12 @@ import ROOT
 #================================================================================================
 kwargs = {
     "analysis"       : "Kinematics",
-    "savePath"       : "plots/metAnalysis/",
+    "savePath"       : "plots/metAnalysis_ratio/",
     "refDataset"     : "ChargedHiggs_HplusTB_HplusToTB_M_200",
-    "rmDataset"      : ["ChargedHiggs_HplusTB_HplusToTB_M_180", "ChargedHiggs_HplusTB_HplusToTB_M_220", "ChargedHiggs_HplusTB_HplusToTB_M_250", "ChargedHiggs_HplusTB_HplusToTB_M_300", "ChargedHiggs_HplusTB_HplusToTB_M_350", "ChargedHiggs_HplusTB_HplusToTB_M_400"], #["QCD"],
+    "rmDataset"      : ["ChargedHiggs_HplusTB_HplusToTB_M_180", "ChargedHiggs_HplusTB_HplusToTB_M_220", "ChargedHiggs_HplusTB_HplusToTB_M_250", "ChargedHiggs_HplusTB_HplusToTB_M_300", "ChargedHiggs_HplusTB_HplusToTB_M_350", "ChargedHiggs_HplusTB_HplusToTB_M_400", "ChargedHiggs_HplusTB_HplusToTB_M_500"], #["QCD"],
     "saveFormats"    : [".png", ".pdf", ".C"],
     "normalizeTo"    : "One", #One", "XSection", "Luminosity"
-    "createRatio"    : False,
+    "createRatio"    : False, #True,
     "logX"           : False,
     "logY"           : True,
     "gridX"          : True,
@@ -45,53 +45,22 @@ kwargs = {
     "cutLine"        : False,
     "cutLessthan"    : False,
     "cutFillColour"  : ROOT.kAzure-4,
-    "rebinFactor"    : 6,
+    "rebinFactor"    : 5,
 }
 
 
 hNames  = []
-for var in ["Et", "Phi"]:
-    hNames.append("genMET_" + var)
-
-    hNames.append("genMET_0leptonFromW_" + var)
-    hNames.append("genMET_1leptonFromW_" + var)
-    hNames.append("genMET_2leptonFromW_" + var)
-    hNames.append("genMET_2_more_leptonFromW_" + var)
-
-    hNames.append("genMET_0leptonFromB_" + var)
-    hNames.append("genMET_1leptonFromB_" + var)
-    hNames.append("genMET_2leptonFromB_" + var)
-    hNames.append("genMET_2_more_leptonFromB_" + var)
-    hNames.append("genMET_3leptonFromB_" + var)
-    hNames.append("genMET_4leptonFromB_" + var)
+hRefNames  = []
+for var in ["Et"]:#, "Phi"]:
+    hRefNames.append("genMET_" + var)
 
     hNames.append("genMET_leptons_0FromB_0FromW_" + var)
-    hNames.append("genMET_leptons_0FromB_1FromW_" + var)
-    hNames.append("genMET_leptons_0FromB_2FromW_" + var)
-    hNames.append("genMET_leptons_0FromB_2_more_FromW_" + var)
-
-    hNames.append("genMET_leptons_1FromB_0FromW_" + var)
-    hNames.append("genMET_leptons_1FromB_1FromW_" + var)
-    hNames.append("genMET_leptons_1FromB_2FromW_" + var)
-    hNames.append("genMET_leptons_1FromB_2_more_FromW_" + var)
-
-    hNames.append("genMET_leptons_2FromB_0FromW_" + var)
-    hNames.append("genMET_leptons_2FromB_1FromW_" + var)
-    hNames.append("genMET_leptons_2FromB_2FromW_" + var)
-    hNames.append("genMET_leptons_2_more_FromB_0FromW_" + var)
-    hNames.append("genMET_leptons_2_more_FromB_1FromW_" + var)
-    hNames.append("genMET_leptons_2_more_FromB_2_more_FromW_" + var)
-
-    hNames.append("genMET_leptons_3FromB_0FromW_" + var)
-    hNames.append("genMET_leptons_3FromB_1FromW_" + var)
-    hNames.append("genMET_leptons_3FromB_2FromW_" + var)
-
-    hNames.append("genMET_leptons_4FromB_0FromW_" + var)
-    hNames.append("genMET_leptons_4FromB_1FromW_" + var)
-    hNames.append("genMET_leptons_4FromB_2FromW_" + var)
-
     hNames.append("genMET_1leptons_" + var)
     hNames.append("genMET_2_more_leptons_" + var)
+
+_hLegends = ["Inclusive","0 leptons", "1 lepton", "2+ leptons"]
+_hNames = hRefNames + hNames
+hMap = dict(zip(_hNames, _hLegends))
 
 #================================================================================================
 # Main
@@ -128,17 +97,17 @@ def main():
 
 
     # For-loop: All Histogram names
-    for counter, hName in enumerate(hNames):
+#    for counter, hName in enumerate(hNames):
+    if True:
 
         # Get the save path and name
-        savePath, saveName = GetSavePathAndName(hName, **kwargs)
+        savePath, saveName = GetSavePathAndName("nLeptons", **kwargs)
 
         # Get Histos for Plotter
-        refHisto, otherHistos = GetHistosForPlotter(datasetsMgr, hName, **kwargs)
+        refHisto, otherHistos = GetHistosForPlotterComparison(datasetsMgr, hRefNames[0], hNames, **kwargs)
 
         # Create a comparison plot
         p = plots.ComparisonManyPlot(refHisto, otherHistos)
-
 
         # Remove negative contributions
         #RemoveNegativeBins(datasetsMgr, hName, p)
@@ -153,6 +122,8 @@ def main():
 
         p.histoMgr.forEachHisto(lambda h: h.getRootHisto().Rebin(kwargs.get("rebinFactor")))
 
+        # Change the legend to something decent
+        p.histoMgr.setHistoLegendLabelMany(hMap)
         # Customise Legend
         moveLegend = {"dx": -0.1, "dy": +0.0, "dh": -0.1}
         p.setLegend(histograms.moveLegend(histograms.createLegend(), **moveLegend))
@@ -174,7 +145,8 @@ def main():
 
         # Move the refDataset to first in the draw order (back)
         histoNames = [h.getName() for h in p.histoMgr.getHistos()]
-        p.histoMgr.reorder(filter(lambda n: plots._legendLabels[kwargs.get("refDataset") ] not in n, histoNames))
+        #p.histoMgr.reorder(filter(lambda n: plots._legendLabels[kwargs.get("refDataset") ] not in n, histoNames))
+        p.histoMgr.reorder(hNames)
 
         #  Draw plots
         p.draw()
@@ -188,15 +160,6 @@ def main():
         if not os.path.exists(savePath):
             os.mkdir(savePath)
         SaveAs(p, savePath, saveName, kwargs.get("saveFormats"))
-
-
-    # For-loop: All Histogram names
-    for counter, hName in enumerate(hNames):
-        # Get Histos for Plotter
-        refHisto, otherHistos = GetHistosForPlotter(datasetsMgr, hName, **kwargs)
-        p = plots.ComparisonManyPlot(refHisto, otherHistos)
-	for bla in p.histoMgr.getHistos():
-            print(bla.getRootHisto().GetName() + "\t" + str(bla.getRootHisto().GetEntries()))
 
     return
 
