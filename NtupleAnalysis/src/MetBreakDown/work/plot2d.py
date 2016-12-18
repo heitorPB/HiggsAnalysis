@@ -32,7 +32,7 @@ kwargs = {
     "analysis"       : "MetBreakDown",
     "savePath"       : "plots/2d/",
     "refDataset"     : "ChargedHiggs_HplusTB_HplusToTB_M_200", #, TT, QCD
-    "rmDataset"      : ["ChargedHiggs_HplusTB_HplusToTB_M_220", "ChargedHiggs_HplusTB_HplusToTB_M_250", "ChargedHiggs_HplusTB_HplusToTB_M_350", "ChargedHiggs_HplusTB_HplusToTB_M_400", "ChargedHiggs_HplusTB_HplusToTB_M_500", "TT"], #["QCD"],
+    "rmDataset"      : ["ChargedHiggs_HplusTB_HplusToTB_M_500", "TT", "TTTT", "QCD", "QCD-b"], #["QCD"],
     "saveFormats"    : [".png", ".pdf"],
     "normalizeTo"    : "One", #One", "XSection", "Luminosity"
     "zMin"           : 1e-5,
@@ -82,7 +82,8 @@ def main():
     ROOT.gROOT.SetBatch(parseOpts.batchMode)
     
     # Get all datasets from the mcrab dir
-    datasetsMgr  = GetDatasetsFromDir(parseOpts.mcrab, kwargs.get("analysis"))
+    #datasetsMgr  = GetDatasetsFromDir(parseOpts.mcrab, kwargs.get("analysis"))
+    datasetsMgr  = GetDatasetsFromDir(parseOpts.mcrab, parseOpts, **kwargs)
 
     # Determine Integrated Luminosity (If Data datasets present)
     intLumi = GetLumi(datasetsMgr)
@@ -174,6 +175,9 @@ if __name__ == "__main__":
     parser.add_option("-m", "--mcrab"    , dest="mcrab"    , action="store", help="Path to the multicrab directory for input")
     parser.add_option("-b", "--batchMode", dest="batchMode", action="store_false", default=True, help="Enables batch mode (canvas creation does NOT generates a window)")
     parser.add_option("-v", "--verbose"  , dest="verbose"  , action="store_true", default=False, help="Enables verbose mode (for debugging purposes)")
+    parser.add_option("-i", "--includeTasks", dest="includeTasks" , default="", type="string", help="Only perform action for this dataset(s) [default: '']")
+    parser.add_option("-e", "--excludeTasks", dest="excludeTasks" , default="", type="string", help="Exclude this dataset(s) from action [default: '']")
+
     (parseOpts, parseArgs) = parser.parse_args()
 
     # Require at least two arguments (script-name, path to multicrab)
@@ -189,48 +193,3 @@ if __name__ == "__main__":
 
     if not parseOpts.batchMode:
         raw_input("=== plotTemplate.py: Press any key to quit ROOT ...")
-
-
-#        args = {
-#            "xlabel": "x",
-#            "ylabel": "y",
-#            "zlabel": "z",
-#            "xlabelsize": None,
-#            "ylabelsize": None,
-#            "zhisto": None,
-#            "log": False,
-#            "ratio": False,
-#            "ratioYlabel": None, 
-#            "ratioInvert": False,
-#            "ratioType": None,
-#            #"ratioErrorOptions": 
-#            "ratioCreateLegend": True,
-#            #"ratioMoveLegend":
-#            #"opts":
-#            #"optsLog":
-#            #"opts2":
-#            #"canvasOpts":
-#            "backgroundColor": ROOT.kRed,
-#            "rebin": 1,
-#            "rebinX": 1,
-#            "rebinY": 1,
-#            "rebinToWidthX": None,
-#            "rebinToWidthY": None,
-#            "divideByBinWidth": None,
-#            "errorBarsX": True,
-#            "createLegend": None,
-#            #"moveLegend": 
-#            #"customizeBeforeFrame":
-#            #"customizeBeforeDraw":
-#            #"customizeBeforeSave":
-#            #"addLuminosityText":
-#            "stackMCHistograms": True,
-#            "addMCUncertainty": True,
-#            "cmsText": True,
-#            "cmsExtraText": True,
-#            "addCmsText": True,
-#            "cmsTextPosition": None,
-#            "cmsExtraTextPosition": None,
-#        }
-#        
-#        p.setDrawOptions(**args)
