@@ -47,7 +47,7 @@ kwargs = {
     "analysis"       : "MetBreakDown",
     "savePath"       : os.getcwd() + "/plots/metBreakdown/",
     "refDataset"     : "ChargedHiggs_HplusTB_HplusToTB_M_200", #ChargedHiggs_HplusTB_HplusToTB_M_200
-    "rmDataset"      : "TTTT",
+    "rmDataset"      : ["TTTT", "TTJets", "TTWJetsToQQ", "TTZToQQ"],
     "saveFormats"    : [".png", ".pdf"],
     "normalizeTo"    : "One", #One", "XSection", "Luminosity"
     "createRatio"    : False,
@@ -66,10 +66,10 @@ kwargs = {
 }
 
 kwargs_fixed = dict(kwargs)
-kwargs_fixed["rmDataset"] = [kwargs.get("rmDataset"), "ChargedHiggs_HplusTB_HplusToTB_M_500"]
-kwargs["rmDataset"] = ["TTTT", "TT", "QCD", "QCD-b"]
-#print kwargs.get("rmDataset")
-#print kwargs_fixed.get("rmDataset")
+kwargs_fixed["rmDataset"] = ["TTTT", "TTJets", "TTWJetsToQQ", "TTZToQQ", "ChargedHiggs_HplusTB_HplusToTB_M_500"]
+kwargs["rmDataset"] = ["TTTT", "TT", "QCD", "QCD-b", "TTJets", "TTWJetsToQQ", "TTZToQQ"]
+print kwargs.get("rmDataset")
+print kwargs_fixed.get("rmDataset")
 
 hNames = [
     "MET_0leptonFromW_Et",

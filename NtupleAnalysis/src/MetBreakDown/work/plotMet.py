@@ -47,7 +47,7 @@ kwargs = {
     "analysis"       : "MetBreakDown",
     "savePath"       : os.getcwd() + "/plots/metBreakdown/",
     "refDataset"     : "ChargedHiggs_HplusTB_HplusToTB_M_200", #ChargedHiggs_HplusTB_HplusToTB_M_200
-    "rmDataset"      : "TTTT",
+    "rmDataset"      : ["TTTT", "TTJets", "TTWJetsToQQ", "TTZToQQ"],
     "saveFormats"    : [".png", ".pdf"],
     "normalizeTo"    : "One", #One", "XSection", "Luminosity"
     "createRatio"    : False,
