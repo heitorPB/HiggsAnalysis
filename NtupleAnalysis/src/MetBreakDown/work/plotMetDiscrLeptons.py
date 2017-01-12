@@ -50,7 +50,7 @@ kwargs = {
     "rmDataset"      : ["TTTT", "TT", "QCD", "QCD-b"],#, "ChargedHiggs_HplusTB_HplusToTB_M_500"],
     "saveFormats"    : [".png", ".pdf"],
     "normalizeTo"    : "One", #One", "XSection", "Luminosity"
-    "createRatio"    : False,
+    "createRatio"    : True,
     "logX"           : False,
     "logY"           : True,
     "gridX"          : True,
@@ -179,7 +179,7 @@ def main(opts):
                 #opts = {"ymin": 1e-3, "ymax": 1}
             else:
                 opts = {"ymin": 8.e-5, "ymax": 2}
-            ratioOpts = {"ymin": 0.0, "ymax": 2.0}
+            ratioOpts = {"ymin": 0.1, "ymax": 10.0}
             p.createFrame(saveName, createRatio=kwargs.get("createRatio"), opts=opts, opts2=ratioOpts)
             
             # Customise Legend
@@ -192,7 +192,7 @@ def main(opts):
             #p.setEnergy("13")
             if kwargs.get("createRatio"):
                 p.getFrame2().GetYaxis().SetTitle("Ratio")
-                p.getFrame2().GetYaxis().SetTitleOffset(1.6)
+                p.getFrame2().GetYaxis().SetTitleOffset(1.7)
 
             # SetLog
             SetLogAndGrid(p, **kwargs)
