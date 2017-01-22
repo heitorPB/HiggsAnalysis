@@ -66,8 +66,8 @@ kwargs = {
 }
 
 kwargs_fixed = dict(kwargs)
-kwargs_fixed["rmDataset"] = ["TTTT", "TTJets", "TTWJetsToQQ", "TTZToQQ", "ChargedHiggs_HplusTB_HplusToTB_M_500"]
-kwargs["rmDataset"] = ["TTTT", "TT", "QCD", "QCD-b", "TTJets", "TTWJetsToQQ", "TTZToQQ"]
+kwargs_fixed["rmDataset"] = ["TTTT", "TT", "TTJets", "TTWJetsToQQ", "TTZToQQ", "ChargedHiggs_HplusTB_HplusToTB_M_500"]
+kwargs["rmDataset"] = ["TTTT", "QCD", "QCD-b", "TTJets", "TTWJetsToQQ", "TTZToQQ"]
 print kwargs.get("rmDataset")
 print kwargs_fixed.get("rmDataset")
 
