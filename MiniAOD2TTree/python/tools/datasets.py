@@ -184,7 +184,17 @@ datasetsQCD_reHLT.append(Dataset('/QCD_Pt_3200toInf_TuneCUETP8M1_13TeV_pythia8/R
 #================================================================================================ 
 datasetsSignalTB = []
 das = "https://cmsweb.cern.ch/das/request?view=list&limit=50&instance=prod%2Fglobal&input=dataset%3D%2FChargedHiggs_HplusTB_HplusToTB*%2FRunII*PUMoriond17_80X_mcRun2*%2FMINIAODSIM"
-datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-300_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM', dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-180_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-200_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-220_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-250_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-300_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-350_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-400_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-500_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-800_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM' , dataVersion="80Xmc", dasQuery=das))
+datasetsSignalTB.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-3000_13TeV_amcatnlo_pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM', dataVersion="80Xmc", dasQuery=das))
+# more pending?
 
 
 datasetsSignalTauNu = []
@@ -372,7 +382,7 @@ datasetsTTWJetsToQQ.append(Dataset('/TTWJetsToQQ_TuneCUETP8M1_13TeV-amcatnloFXFX
 
 datasetsTTTT = []
 das = "https://cmsweb.cern.ch/das/request?view=list&limit=50&instance=prod%2Fglobal&input=dataset%3D%2FTTTT*%2FRunII*PUMoriond17_80X_mcRun2*%2FMINIAODSIM"
-#datasetsTTTT.append(Dataset('/TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM', dataVersion="80Xmc", dasQuery=das))
+datasetsTTTT.append(Dataset('/TTTT_TuneCUETP8M1_13TeV-amcatnlo-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM', dataVersion="80Xmc", dasQuery=das))
 datasetsTTTT.append(Dataset('/TTTT_TuneCUETP8M2T4_13TeV-amcatnlo-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM', dataVersion="80Xmc", dasQuery=das)) # new tune
 
 
@@ -460,7 +470,7 @@ datasetsSignalTauNu_TRGdev.append(Dataset('/ChargedHiggs_HplusTB_HplusToTB_M-500
 #================================================================================================ 
 tauLegDatasets = []
 tauLegDatasets.extend(datasetsMuonData)
-tauLegDatasets.extend(datasetsDY_reHLT)
+tauLegDatasets.extend(datasetsDY)
 # tauLegDatasets.extend(datasetsWJets_reHLT)
 # tauLegDatasets.extend(datasetsQCDMuEnriched_reHLT)
 # tauLegDatasets.extend(datasetsH125)
@@ -468,10 +478,11 @@ tauLegDatasets.extend(datasetsDY_reHLT)
 
 metLegDatasets = []
 metLegDatasets.extend(datasetsTauData)
-metLegDatasets.extend(datasetsDY_reHLT)
-metLegDatasets.extend(datasetsTop_reHLT)
-metLegDatasets.extend(datasetsWJets_reHLT)
-metLegDatasets.extend(datasetsQCD_reHLT)
+metLegDatasets.extend(datasetsDY)
+metLegDatasets.extend(datasetsTop)
+metLegDatasets.extend(datasetsSingleTop)
+metLegDatasets.extend(datasetsWJets)
+metLegDatasets.extend(datasetsQCD)
 
 
 signalAnalysisDatasets = []
@@ -496,19 +507,19 @@ signalAnalysisDatasets.extend(datasetsSignalTauNu)
 
 hplus2tbAnalysisDatasets = []
 hplus2tbAnalysisDatasets.extend(datasetsJetHTData)
-hplus2tbAnalysisDatasets.extend(datasetsSignalTB_reHLT)
+hplus2tbAnalysisDatasets.extend(datasetsSignalTB)
 hplus2tbAnalysisDatasets.extend(datasetsTop)
 hplus2tbAnalysisDatasets.extend(datasetsSingleTop)
 hplus2tbAnalysisDatasets.extend(datasetsDYJetsToQQ)
 hplus2tbAnalysisDatasets.extend(datasetsWJetsToQQ)
-hplus2tbAnalysisDatasets.extend(datasetsZJetsToQQ_reHLT) # PUMoriond17 not ready yet
+# hplus2tbAnalysisDatasets.extend(datasetsZJetsToQQ_reHLT) # PUMoriond17?
 hplus2tbAnalysisDatasets.extend(datasetsDibosonToQQ)
-hplus2tbAnalysisDatasets.extend(datasetsQCD)
+# hplus2tbAnalysisDatasets.extend(datasetsQCD)
 hplus2tbAnalysisDatasets.extend(datasetsQCD_HT)
 hplus2tbAnalysisDatasets.extend(datasetsQCDbEnriched)
 hplus2tbAnalysisDatasets.extend(datasetsTTWJetsToQQ)  
 hplus2tbAnalysisDatasets.extend(datasetsTTTT) 
-# hplus2tbAnalysisDatasets.extend(datasetsTTBB) # PUMoriond17 not ready yet 
+# hplus2tbAnalysisDatasets.extend(datasetsTTBB) # PUMoriond17?
 hplus2tbAnalysisDatasets.extend(datasetsTTZToQQ)
 # hplus2tbAnalysisDatasets.extend(datasetsQCDMuEnriched)
 # hplus2tbAnalysisDatasets.extend(datasetsQCD_HT_BGenFilter) 
