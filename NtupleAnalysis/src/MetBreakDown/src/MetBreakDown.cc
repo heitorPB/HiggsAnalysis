@@ -57,6 +57,12 @@ private:
   const HistogramSettings cfg_DeltaPhiBinSetting;
   const HistogramSettings cfg_DeltaRBinSetting;
 
+  CommonPlots fCommonPlots;
+
+  // Event selection classes
+  ElectronSelection fElectronSelection;
+  MuonSelection fMuonSelection;
+
   Tools auxTools;
 
   // Counters
@@ -254,26 +260,33 @@ private:
   WrappedTH1 *h_recoMET_2_more_leptons_Phi;
 
 
+  // MHT histos
+  WrappedTH1 *h_genMHT;
+  WrappedTH1 *h_recoMHT;
 
+  WrappedTH1 *h_genMHT_0leptonFromW;
+  WrappedTH1 *h_genMHT_1_more_leptonFromW;
+  WrappedTH1 *h_genMHT_0leptonsFromB;
+  WrappedTH1 *h_genMHT_1_more_leptonsFromB;
 
+  WrappedTH1 *h_genMHT_leptons_0FromB_0FromW;
+  WrappedTH1 *h_genMHT_leptons_0FromB_1_more_FromW;
+  WrappedTH1 *h_genMHT_leptons_1_more_FromB_0FromW;
+  WrappedTH1 *h_genMHT_leptons_1_more_FromB_1_more_FromW;
 
+  WrappedTH1 *h_genMHT_1_more_leptons;
 
+  WrappedTH1 *h_recoMHT_0leptonFromW;
+  WrappedTH1 *h_recoMHT_1_more_leptonFromW;
+  WrappedTH1 *h_recoMHT_0leptonsFromB;
+  WrappedTH1 *h_recoMHT_1_more_leptonsFromB;
 
+  WrappedTH1 *h_recoMHT_leptons_0FromB_0FromW;
+  WrappedTH1 *h_recoMHT_leptons_0FromB_1_more_FromW;
+  WrappedTH1 *h_recoMHT_leptons_1_more_FromB_0FromW;
+  WrappedTH1 *h_recoMHT_leptons_1_more_FromB_1_more_FromW;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  WrappedTH1 *h_recoMHT_1_more_leptons;
 
 
 
@@ -316,10 +329,19 @@ MetBreakDown::MetBreakDown(const ParameterSet& config, const TH1* skimCounters)
     cSubNoPreselections(fEventCounter.addSubCounter("Preselections", "All Events")),
     cSubPassedLeptonVeto(fEventCounter.addSubCounter("Preselections", "Lepton Veto")),
     cSubPassedJetsCut(fEventCounter.addSubCounter("Preselections", "Jets Cut")),
-    cSubPassedHtCut(fEventCounter.addSubCounter("Preselections","HT Cut"))
+    cSubPassedHtCut(fEventCounter.addSubCounter("Preselections","HT Cut")),
+    fCommonPlots(config.getParameter<ParameterSet>("CommonPlots"), CommonPlots::kSignalAnalysis, fHistoWrapper),
+    fElectronSelection(config.getParameter<ParameterSet>("ElectronSelection"),
+                       fEventCounter, fHistoWrapper, &fCommonPlots, "Veto"),
+    fMuonSelection(config.getParameter<ParameterSet>("MuonSelection"),
+                       fEventCounter, fHistoWrapper, &fCommonPlots, "Veto")
 { }
 
 void MetBreakDown::book(TDirectory *dir) {
+  fCommonPlots.book(dir, isData());
+ 
+  fElectronSelection.bookHistograms(dir);
+  fMuonSelection.bookHistograms(dir);
 
   Table cuts("Variable | Jets | Electron | Muon | HT", "Text"); //LaTeX or Text
   cuts.AddRowColumn(0, "Pt (GeV/c)");
@@ -356,41 +378,13 @@ void MetBreakDown::book(TDirectory *dir) {
   const double minMet  = 0;
   const double maxMet  = 300;
 
-  const int nBinsPt   = cfg_PtBinSetting.bins();
-  const double minPt  = cfg_PtBinSetting.min();
-  const double maxPt  = cfg_PtBinSetting.max();
-
-  const int nBinsEta  = cfg_EtaBinSetting.bins();
-  const double minEta = cfg_EtaBinSetting.min();
-  const double maxEta = cfg_EtaBinSetting.max();
-
-  const int nBinsRap  = cfg_EtaBinSetting.bins();
-  const double minRap = cfg_EtaBinSetting.min();
-  const double maxRap = cfg_EtaBinSetting.max();
+  //const int nBinsPt   = cfg_PtBinSetting.bins();
+  //const double minPt  = cfg_PtBinSetting.min();
+  //const double maxPt  = cfg_PtBinSetting.max();
 
   const int nBinsPhi  = cfg_PhiBinSetting.bins();
   const double minPhi = cfg_PhiBinSetting.min();
   const double maxPhi = cfg_PhiBinSetting.max();
-
-  const int nBinsM  = cfg_MassBinSetting.bins();
-  const double minM = cfg_MassBinSetting.min();
-  const double maxM = cfg_MassBinSetting.max();
-
-  const int nBinsdEta  = cfg_DeltaEtaBinSetting.bins();
-  const double mindEta = cfg_DeltaEtaBinSetting.min();
-  const double maxdEta = cfg_DeltaEtaBinSetting.max();
-
-  const int nBinsdRap  = cfg_DeltaEtaBinSetting.bins();
-  const double mindRap = cfg_DeltaEtaBinSetting.min();
-  const double maxdRap = cfg_DeltaEtaBinSetting.max();
-
-  const int nBinsdPhi  = cfg_DeltaPhiBinSetting.bins();
-  const double mindPhi = cfg_DeltaPhiBinSetting.min();
-  const double maxdPhi = cfg_DeltaPhiBinSetting.max();
-
-  const int nBinsdR  = cfg_DeltaRBinSetting.bins();
-  const double mindR = cfg_DeltaRBinSetting.min();
-  const double maxdR = cfg_DeltaRBinSetting.max();
 
 
   // Event Variables
@@ -578,8 +572,35 @@ void MetBreakDown::book(TDirectory *dir) {
   h_recoMET_2_more_leptons_Phi = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMET_2_more_leptons_Phi", ";Reco E_{T}^{miss} #phi (rads)", nBinsPhi, minPhi, maxPhi);
 
 
+  // MHT
+  h_genMHT  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir,  "genMHT",  ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMHT = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT", ";Reco MH_{T} (GeV)", nBinsMet, minMet, maxMet);
 
 
+  h_genMHT_0leptonFromW        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_0leptonFromW",       ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_genMHT_1_more_leptonFromW  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_1_more_leptonFromW", ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_genMHT_0leptonsFromB       = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_0leptonFromB",       ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_genMHT_1_more_leptonsFromB = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_1_more_leptonFromB", ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+
+  h_genMHT_leptons_0FromB_0FromW             = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_leptons_0FromB_0FromW",             ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_genMHT_leptons_0FromB_1_more_FromW       = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_leptons_0FromB_1_more_FromW",       ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_genMHT_leptons_1_more_FromB_0FromW       = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_leptons_1_more_FromB_0FromW",       ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_genMHT_leptons_1_more_FromB_1_more_FromW = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_leptons_1_more_FromB_1_more_FromW", ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+
+  h_genMHT_1_more_leptons = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "genMHT_1_more_leptons", ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+
+
+  h_recoMHT_0leptonFromW        = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_0leptonFromW",       ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMHT_1_more_leptonFromW  = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_1_more_leptonFromW", ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMHT_0leptonsFromB       = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_0leptonFromB",       ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMHT_1_more_leptonsFromB = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_1_more_leptonFromB", ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+
+  h_recoMHT_leptons_0FromB_0FromW             = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_leptons_0FromB_0FromW",             ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMHT_leptons_0FromB_1_more_FromW       = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_leptons_0FromB_1_more_FromW",       ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMHT_leptons_1_more_FromB_0FromW       = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_leptons_1_more_FromB_0FromW",       ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMHT_leptons_1_more_FromB_1_more_FromW = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_leptons_1_more_FromB_1_more_FromW", ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
+
+  h_recoMHT_1_more_leptons = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMHT_1_more_leptons", ";Gen MH_{T} (GeV)", nBinsMet, minMet, maxMet);
 
 
 
@@ -650,7 +671,7 @@ void MetBreakDown::process(Long64_t entry) {
   int nMuons     = 0;
   bool foundPV   = false;
   ROOT::Math::XYZPoint pv;
-
+/*
   // For-loop: All genParticles
   for (auto& p: fEvent.genparticles().getGenParticles()) {
 
@@ -682,7 +703,14 @@ void MetBreakDown::process(Long64_t entry) {
       }
     else continue;
 
-  }
+  }*/
+  const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
+  if (eData.hasIdentifiedElectrons())
+    return;
+  const MuonSelection::Data muData = fMuonSelection.analyze(fEvent);
+  if (muData.hasIdentifiedMuons())
+    return;
+
 
   ///////////////////////////////////////////////////////////////////////////
   // Preselection Cuts (python/parameters/hplus2tbAnalysis.py)
@@ -915,6 +943,28 @@ void MetBreakDown::process(Long64_t entry) {
 
   }//for-loop: genParticles
 
+  // MHT = | sum p4 |_t
+  std::vector<float>  genJets_px;
+  std::vector<float>  genJets_py;
+  std::vector<float> recoJets_px;
+  std::vector<float> recoJets_py;
+
+  for(auto j: fEvent.genjets()) {
+    genJets_px.push_back(j.p4().x());
+    genJets_py.push_back(j.p4().y());
+  }
+  for(auto j: fEvent.jets()) {
+    recoJets_px.push_back(j.p4().x());
+    recoJets_py.push_back(j.p4().y());
+  }
+
+  float  genJets_px_sum = std::accumulate(genJets_px.begin(), genJets_px.end(), 0.0);
+  float  genJets_py_sum = std::accumulate(genJets_py.begin(), genJets_py.end(), 0.0);
+  float recoJets_px_sum = std::accumulate(recoJets_px.begin(), recoJets_px.end(), 0.0);
+  float recoJets_py_sum = std::accumulate(recoJets_py.begin(), recoJets_py.end(), 0.0);
+
+  float  genMHT = std::sqrt(std::pow(genJets_px_sum, 2) + std::pow(genJets_py_sum, 2));
+  float recoMHT = std::sqrt(std::pow(recoJets_px_sum, 2) + std::pow(recoJets_py_sum, 2));
 
   // MET analysis
   short lepton_from_W = lepton_from_Wplus + lepton_from_Wminus;
@@ -928,6 +978,9 @@ void MetBreakDown::process(Long64_t entry) {
 	  h_genMET_0leptonFromW_Phi->Fill(fEvent.genMET().Phi());
 	  h_recoMET_0leptonFromW_Et->Fill(fEvent.met().et());
 	  h_recoMET_0leptonFromW_Phi->Fill(fEvent.met().Phi());
+
+	  h_genMHT_0leptonFromW->Fill(genMHT);
+	  h_recoMHT_0leptonFromW->Fill(recoMHT);
 	  break;
   case 1:
 	  h_genMET_1leptonFromW_Et->Fill(fEvent.genMET().et());
@@ -939,6 +992,9 @@ void MetBreakDown::process(Long64_t entry) {
 	  h_genMET_1_more_leptonFromW_Phi->Fill(fEvent.genMET().Phi());
 	  h_recoMET_1_more_leptonFromW_Et->Fill(fEvent.met().et());
 	  h_recoMET_1_more_leptonFromW_Phi->Fill(fEvent.met().Phi());
+
+	  h_genMHT_1_more_leptonFromW->Fill(genMHT);
+	  h_recoMHT_1_more_leptonFromW->Fill(recoMHT);
 	  break;
   case 2:
 	  h_genMET_2leptonFromW_Et->Fill(fEvent.genMET().et());
@@ -955,6 +1011,9 @@ void MetBreakDown::process(Long64_t entry) {
 	  h_genMET_2_more_leptonFromW_Phi->Fill(fEvent.genMET().Phi());
 	  h_recoMET_2_more_leptonFromW_Et->Fill(fEvent.met().et());
 	  h_recoMET_2_more_leptonFromW_Phi->Fill(fEvent.met().Phi());
+
+	  h_genMHT_1_more_leptonFromW->Fill(genMHT);
+	  h_recoMHT_1_more_leptonFromW->Fill(recoMHT);
 	  break;
   }
 
@@ -965,6 +1024,9 @@ void MetBreakDown::process(Long64_t entry) {
 	  h_genMET_0leptonsFromB_Phi->Fill(fEvent.genMET().Phi());
 	  h_recoMET_0leptonsFromB_Et->Fill(fEvent.met().et());
 	  h_recoMET_0leptonsFromB_Phi->Fill(fEvent.met().Phi());
+
+	  h_genMHT_0leptonsFromB->Fill(genMHT);
+	  h_recoMHT_0leptonsFromB->Fill(recoMHT);
 	  break;
   case 1:
 	  h_genMET_1leptonsFromB_Et->Fill(fEvent.genMET().et());
@@ -976,6 +1038,9 @@ void MetBreakDown::process(Long64_t entry) {
 	  h_genMET_1_more_leptonsFromB_Phi->Fill(fEvent.genMET().Phi());
 	  h_recoMET_1_more_leptonsFromB_Et->Fill(fEvent.met().et());
 	  h_recoMET_1_more_leptonsFromB_Phi->Fill(fEvent.met().Phi());
+
+	  h_genMHT_1_more_leptonsFromB->Fill(genMHT);
+	  h_recoMHT_1_more_leptonsFromB->Fill(recoMHT);
 	  break;
   case 2:
 	  h_genMET_2leptonsFromB_Et->Fill(fEvent.genMET().et());
@@ -991,6 +1056,9 @@ void MetBreakDown::process(Long64_t entry) {
 	  h_genMET_1_more_leptonsFromB_Phi->Fill(fEvent.genMET().Phi());
 	  h_recoMET_1_more_leptonsFromB_Et->Fill(fEvent.met().et());
 	  h_recoMET_1_more_leptonsFromB_Phi->Fill(fEvent.met().Phi());
+
+	  h_genMHT_1_more_leptonsFromB->Fill(genMHT);
+	  h_recoMHT_1_more_leptonsFromB->Fill(recoMHT);
 	  break;
   case 3:
 	  h_genMET_3leptonsFromB_Et->Fill(fEvent.genMET().et());
@@ -1006,6 +1074,9 @@ void MetBreakDown::process(Long64_t entry) {
 	  h_recoMET_1_more_leptonsFromB_Et->Fill(fEvent.met().et());
 	  h_recoMET_1_more_leptonsFromB_Phi->Fill(fEvent.met().Phi());
 	  h_recoMET_2_more_leptonsFromB_Phi->Fill(fEvent.met().Phi());
+
+	  h_genMHT_1_more_leptonsFromB->Fill(genMHT);
+	  h_recoMHT_1_more_leptonsFromB->Fill(recoMHT);
 	  break;
   case 4:
 	  h_genMET_4leptonsFromB_Et->Fill(fEvent.genMET().et());
@@ -1022,6 +1093,9 @@ void MetBreakDown::process(Long64_t entry) {
 	  h_genMET_2_more_leptonsFromB_Phi->Fill(fEvent.genMET().Phi());
 	  h_recoMET_2_more_leptonsFromB_Et->Fill(fEvent.met().et());
 	  h_recoMET_2_more_leptonsFromB_Phi->Fill(fEvent.met().Phi());
+
+	  h_genMHT_1_more_leptonsFromB->Fill(genMHT);
+	  h_recoMHT_1_more_leptonsFromB->Fill(recoMHT);
 	  break;
   }
 
@@ -1034,6 +1108,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_0FromB_0FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_0FromB_0FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_0FromB_0FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_0FromB_0FromW->Fill(genMHT);
+		h_recoMHT_leptons_0FromB_0FromW->Fill(recoMHT);
 		break;
 	case 1:
 		h_genMET_leptons_0FromB_1FromW_Et->Fill(fEvent.genMET().et());
@@ -1045,6 +1122,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_0FromB_1_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_0FromB_1_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_0FromB_1_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_0FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_0FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	case 2:
 		h_genMET_leptons_0FromB_2FromW_Et->Fill(fEvent.genMET().et());
@@ -1061,6 +1141,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_0FromB_2_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_0FromB_2_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_0FromB_2_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_0FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_0FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	}
 	break;
@@ -1076,6 +1159,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_0FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_0FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_0FromW->Fill(recoMHT);
 		break;
 	case 1:
 		h_genMET_leptons_1FromB_1FromW_Et->Fill(fEvent.genMET().et());
@@ -1087,6 +1173,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	case 2:
 		h_genMET_leptons_1FromB_2FromW_Et->Fill(fEvent.genMET().et());
@@ -1103,6 +1192,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1FromB_2_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1FromB_2_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1FromB_2_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	}
 	break;
@@ -1122,6 +1214,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_0FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_0FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_0FromW->Fill(recoMHT);
 		break;
 	case 1:
 		h_genMET_leptons_2FromB_1FromW_Et->Fill(fEvent.genMET().et());
@@ -1138,6 +1233,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	case 2:
 		// TODO check this logic here. Sems weird.
@@ -1155,6 +1253,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_2_more_FromB_2_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_2_more_FromB_2_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_2_more_FromB_2_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	}
 	break;
@@ -1174,6 +1275,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_0FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_0FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_0FromW->Fill(recoMHT);
 		break;
 	case 1:
 		h_genMET_leptons_3FromB_1FromW_Et->Fill(fEvent.genMET().et());
@@ -1188,6 +1292,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	case 2:
 		h_genMET_leptons_3FromB_2FromW_Et->Fill(fEvent.genMET().et());
@@ -1203,6 +1310,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_2_more_FromB_2_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_2_more_FromB_2_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_2_more_FromB_2_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	}
 	break;
@@ -1222,6 +1332,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_0FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_0FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_0FromW->Fill(recoMHT);
 		break;
 	case 1:
 		h_genMET_leptons_4FromB_1FromW_Et->Fill(fEvent.genMET().et());
@@ -1236,6 +1349,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	case 2:
 		h_genMET_leptons_4FromB_2FromW_Et->Fill(fEvent.genMET().et());
@@ -1251,6 +1367,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	}
 	break;
@@ -1266,6 +1385,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_0FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_0FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_0FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_0FromW->Fill(recoMHT);
 		break;
 	case 1:
 		h_genMET_leptons_2_more_FromB_1FromW_Et->Fill(fEvent.genMET().et());
@@ -1276,6 +1398,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	case 2:
 	default:
@@ -1287,6 +1412,9 @@ void MetBreakDown::process(Long64_t entry) {
 		h_genMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.genMET().Phi());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Et->Fill(fEvent.met().et());
 		h_recoMET_leptons_1_more_FromB_1_more_FromW_Phi->Fill(fEvent.met().Phi());
+
+		h_genMHT_leptons_1_more_FromB_1_more_FromW->Fill(genMHT);
+		h_recoMHT_leptons_1_more_FromB_1_more_FromW->Fill(recoMHT);
 		break;
 	}
 	break;
@@ -1306,6 +1434,9 @@ void MetBreakDown::process(Long64_t entry) {
 	h_genMET_1_more_leptons_Phi->Fill(fEvent.genMET().phi());
 	h_recoMET_1_more_leptons_Et->Fill(fEvent.met().et());
 	h_recoMET_1_more_leptons_Phi->Fill(fEvent.met().phi());
+
+	h_genMHT_1_more_leptons->Fill(genMHT);
+	h_recoMHT_1_more_leptons->Fill(recoMHT);
 	break;
   case 2:
   default:
@@ -1318,6 +1449,9 @@ void MetBreakDown::process(Long64_t entry) {
 	h_genMET_2_more_leptons_Phi->Fill(fEvent.genMET().phi());
 	h_recoMET_2_more_leptons_Et->Fill(fEvent.met().et());
 	h_recoMET_2_more_leptons_Phi->Fill(fEvent.met().phi());
+
+	h_genMHT_1_more_leptons->Fill(genMHT);
+	h_recoMHT_1_more_leptons->Fill(recoMHT);
 	break;
   }
 
@@ -1335,6 +1469,9 @@ void MetBreakDown::process(Long64_t entry) {
 
   h_recoMET_Et  ->Fill(fEvent.met().et());
   h_recoMET_Phi ->Fill(fEvent.met().Phi());
+
+  h_genMHT->Fill(genMHT);
+  h_recoMHT->Fill(recoMHT);
 
   return;
 }

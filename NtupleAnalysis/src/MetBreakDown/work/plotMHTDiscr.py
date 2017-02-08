@@ -45,7 +45,7 @@ signal2   = [s for s in signal if s not in ["ChargedHiggs_HplusTB_HplusToTB_M_20
 
 kwargs = {
     "analysis"       : "MetBreakDown",
-    "savePath"       : os.getcwd() + "/plots/metBreakdown/",
+    "savePath"       : os.getcwd() + "/plots/mhtBreakdown/",
     "refDataset"     : "ChargedHiggs_HplusTB_HplusToTB_M_200", #ChargedHiggs_HplusTB_HplusToTB_M_200
     "rmDataset"      : ["TTTT", "TTJets", "TTWJetsToQQ", "TTZToQQ"],
     "saveFormats"    : [".png", ".pdf"],
@@ -65,14 +65,23 @@ kwargs = {
     "cutFillColour"  : ROOT.kAzure-4,
 }
 
+kwargs_fixed = dict(kwargs)
+kwargs_fixed["rmDataset"] = ["TTTT", "TT", "TTJets", "TTWJetsToQQ", "TTZToQQ", "ChargedHiggs_HplusTB_HplusToTB_M_500"]
+kwargs["rmDataset"] = ["TTTT", "QCD", "QCD-b", "TTJets", "TTWJetsToQQ", "TTZToQQ"]
+print kwargs.get("rmDataset")
+print kwargs_fixed.get("rmDataset")
 
-hNames= [
-    "genMET_Et",
-    "genMET_Phi",
-    "recoMET_Et",
-    "recoMET_Phi",
-    "genMHT",
-    "recoMHT",
+hNames = [
+    "MHT_0leptonFromW",
+    "MHT_1_more_leptonFromW",
+
+    "MHT_0leptonFromB",
+    "MHT_1_more_leptonFromB",
+
+    "MHT_leptons_0FromB_0FromW",
+    "MHT_leptons_1_more_FromB_0FromW",
+    "MHT_leptons_0FromB_1_more_FromW",
+    "MHT_leptons_1_more_FromB_1_more_FromW",
 ]
 
 #================================================================================================
@@ -87,7 +96,8 @@ def main(opts):
     
     # Get all datasets from the mcrab dir
     # def GetDatasetsFromDir(mcrab, opts, **kwargs): #iro
-    datasetsMgr  = GetDatasetsFromDir(opts.mcrab, opts, **kwargs) #kwargs.get("analysis"))
+    datasetsMgr       = GetDatasetsFromDir(opts.mcrab, opts, **kwargs) #kwargs.get("analysis"))
+    datasetsMgr_fixed = GetDatasetsFromDir(opts.mcrab, opts, **kwargs_fixed)
 
     # Determine Integrated Luminosity (If Data datasets present)
     intLumi = GetLumi(datasetsMgr)
@@ -96,8 +106,8 @@ def main(opts):
     datasetsMgr.updateNAllEventsToPUWeighted()
 
     # Remove datasets
-    print kwargs.get("rmDataset")
     datasetsMgr.remove(kwargs.get("rmDataset"))
+    datasetsMgr_fixed.remove(kwargs_fixed.get("rmDataset"))
     # datasetsMgr.remove(filter(lambda name: not "QCD" in name, datasetsMgr.getAllDatasetNames()))
     # datasetsMgr.remove(filter(lambda name: "QCD" in name in name, datasetsMgr.getAllDatasetNames()))
     
@@ -110,73 +120,87 @@ def main(opts):
     #datasetsMgr.getDataset("QCD_bEnriched_HT700to1000").setCrossSection(1.0)
     
     # Default merging & ordering: "Data", "QCD", "SingleTop", "Diboson"
-    plots.mergeRenameReorderForDataMC(datasetsMgr) #WARNING: Merged MC histograms must be normalized to something!
+    plots.mergeRenameReorderForDataMC(datasetsMgr)
+    plots.mergeRenameReorderForDataMC(datasetsMgr_fixed)
 
     # Remove datasets (for merged names)
     datasetsMgr.remove(kwargs.get("rmDataset"))
+    datasetsMgr_fixed.remove(kwargs_fixed.get("rmDataset"))
     
     # Print the cross
     datasetsMgr.PrintCrossSections()
 
-    # For-loop: All Histogram names
-    for counter, hName in enumerate(hNames):
-        
-        # Get the save path and name
-        savePath, saveName = GetSavePathAndName(hName, **kwargs)
-        
-        # Get Histos for Plotter
-        refHisto, otherHistos = GetHistosForPlotter(datasetsMgr, hName, **kwargs)
+    for h_prefix in ["reco", "gen"]:
+        # Get ref histo (?) here and the fixed histos (TT, QCD, QCD-b
+        inclusiveHisto, fixedHistos = GetHistosForPlotter(datasetsMgr_fixed, h_prefix + "MHT", **kwargs_fixed)
+        inclusiveHisto.setName(inclusiveHisto.getName() + " (inclusive)")
+        #for hi in fixedHistos:
+        #    print(type(hi), hi.getName())
+        #return
+        # For-loop: All Histogram names
+        for counter, hName in enumerate(hNames):
+            
+            # Get the save path and name
+            savePath, saveName = GetSavePathAndName(h_prefix + hName, **kwargs)
+            
+            # Get Histos for Plotter
+            refHisto_, otherHistos_ = GetHistosForPlotter(datasetsMgr, h_prefix + hName, **kwargs)
+            refHisto = refHisto_
+            otherHistos = otherHistos_ + fixedHistos
+            #for hi in otherHistos:
+            #     print hi.getName()
+            #return
 
-        # Create a comparison plot
-        p = plots.ComparisonManyPlot(refHisto, otherHistos)
+            # Create a comparison plot
+            p = plots.ComparisonManyPlot(refHisto, otherHistos)
 
-        # Remove negative contributions
-        #RemoveNegativeBins(datasetsMgr, hName, p)
+            # Remove negative contributions
+            #RemoveNegativeBins(datasetsMgr, hName, p)
 
-        # Create a frame
-        if kwargs.get("logY")==True:
-            opts = {"ymin": 8e-5, "ymax": 2}
-            #opts = {"ymin": 1e-3, "ymax": 1}
-        else:
-            opts = {"ymin": 8.e-5, "ymax": 2}
-        ratioOpts = {"ymin": 0.0, "ymax": 2.0}
-        p.createFrame(saveName, createRatio=kwargs.get("createRatio"), opts=opts, opts2=ratioOpts)
-        
-        # Customise Legend
-        moveLegend = {"dx": -0.2, "dy": +0.0, "dh": -0.1}
-        p.setLegend(histograms.moveLegend(histograms.createLegend(), **moveLegend))
-        #p.removeLegend()
+            # Create a frame
+            if kwargs.get("logY")==True:
+                opts = {"ymin": 8e-5, "ymax": 2}
+                #opts = {"ymin": 1e-3, "ymax": 1}
+            else:
+                opts = {"ymin": 8.e-5, "ymax": 2}
+            ratioOpts = {"ymin": 0.0, "ymax": 2.0}
+            p.createFrame(saveName, createRatio=kwargs.get("createRatio"), opts=opts, opts2=ratioOpts)
+            
+            # Customise Legend
+            moveLegend = {"dx": -0.2, "dy": +0.0, "dh": -0.1}
+            p.setLegend(histograms.moveLegend(histograms.createLegend(), **moveLegend))
+            #p.removeLegend()
 
-        # Customise frame
-        p.getFrame().GetYaxis().SetTitle( getTitleY(refHisto, **kwargs) )
-        #p.setEnergy("13")
-        if kwargs.get("createRatio"):
-            p.getFrame2().GetYaxis().SetTitle("Ratio")
-            p.getFrame2().GetYaxis().SetTitleOffset(1.6)
+            # Customise frame
+            p.getFrame().GetYaxis().SetTitle( getTitleY(refHisto, **kwargs) )
+            #p.setEnergy("13")
+            if kwargs.get("createRatio"):
+                p.getFrame2().GetYaxis().SetTitle("Ratio")
+                p.getFrame2().GetYaxis().SetTitleOffset(1.6)
 
-        # SetLog
-        SetLogAndGrid(p, **kwargs)
+            # SetLog
+            SetLogAndGrid(p, **kwargs)
 
-        # Add cut line/box
-        _kwargs = { "lessThan": kwargs.get("cutLessThan")}
-        p.addCutBoxAndLine(cutValue=kwargs.get("cutValue"), fillColor=kwargs.get("cutFillColour"), box=kwargs.get("cutBox"), line=kwargs.get("cutLine"), **_kwargs)
-        
-        # Move the refDataset to first in the draw order (back)
-        histoNames = [h.getName() for h in p.histoMgr.getHistos()]
-        p.histoMgr.reorder(filter(lambda n: plots._legendLabels[kwargs.get("refDataset") ] not in n, histoNames))
+            # Add cut line/box
+            _kwargs = { "lessThan": kwargs.get("cutLessThan")}
+            p.addCutBoxAndLine(cutValue=kwargs.get("cutValue"), fillColor=kwargs.get("cutFillColour"), box=kwargs.get("cutBox"), line=kwargs.get("cutLine"), **_kwargs)
+            
+            # Move the refDataset to first in the draw order (back)
+            histoNames = [h.getName() for h in p.histoMgr.getHistos()]
+            p.histoMgr.reorder(filter(lambda n: plots._legendLabels[kwargs.get("refDataset") ] not in n, histoNames))
 
-        #  Draw plots
-        p.draw()
+            #  Draw plots
+            p.draw()
 
-        # Customise text
-        histograms.addStandardTexts(lumi=intLumi)
-        # histograms.addText(0.4, 0.9, "Alexandros Attikis", 17)
-        # histograms.addText(0.4, 0.11, "Runs " + datasetsMgr.loadRunRange(), 17)
-        
-        # Save canvas under custom dir
-        if not os.path.exists(savePath):
-                os.mkdir(savePath)
-        SaveAs(p, savePath, saveName, kwargs.get("saveFormats"))
+            # Customise text
+            histograms.addStandardTexts(lumi=intLumi)
+            # histograms.addText(0.4, 0.9, "Alexandros Attikis", 17)
+            # histograms.addText(0.4, 0.11, "Runs " + datasetsMgr.loadRunRange(), 17)
+            
+            # Save canvas under custom dir
+            if not os.path.exists(savePath):
+                    os.mkdir(savePath)
+            SaveAs(p, savePath, saveName, kwargs.get("saveFormats"))
 
     return
 
