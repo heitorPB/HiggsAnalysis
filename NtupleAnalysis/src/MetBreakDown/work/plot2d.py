@@ -58,6 +58,8 @@ kwargs = {
 
 hNames = [
     "genP_n_b_B",
+    "bJets_met",
+    "bJets_mht",
 ]
 
 

@@ -47,8 +47,8 @@ private:
   const double cfg_MuonPtCut;
   const double cfg_MuonEtaCut;
   const DirectionalCut<int> cfg_MuonNumberCut;
-  const ParameterSet PSet_HtSelection;
-  const DirectionalCut<float> cfg_HtCut;
+  //const ParameterSet PSet_HtSelection;
+  //const DirectionalCut<float> cfg_HtCut;
   const HistogramSettings cfg_PtBinSetting;
   const HistogramSettings cfg_EtaBinSetting;
   const HistogramSettings cfg_PhiBinSetting;
@@ -57,20 +57,24 @@ private:
   const HistogramSettings cfg_DeltaPhiBinSetting;
   const HistogramSettings cfg_DeltaRBinSetting;
 
-  CommonPlots fCommonPlots;
+  Tools auxTools;
 
+  CommonPlots fCommonPlots;
   // Event selection classes
   ElectronSelection fElectronSelection;
   MuonSelection fMuonSelection;
-
-  Tools auxTools;
+  TauSelection fTauSelection;
+  JetSelection fJetSelection;
+  BJetSelection fBJetSelection;
 
   // Counters
   Count cAllEvents;
+  Count cTrigger;
   Count cSubNoPreselections;
   Count cSubPassedLeptonVeto;
   Count cSubPassedJetsCut;
-  Count cSubPassedHtCut;
+  //Count cSubPassedHtCut;
+  Count cSelected;
 
   // Event Variables
   WrappedTH1 *h_genMET_Et;
@@ -291,6 +295,18 @@ private:
 
 
 
+  // bjets vs MET
+  WrappedTH2 *h_bJets_met;
+  WrappedTH2 *h_bJets_mht;
+  WrappedTH1 *h_nBJets;
+  WrappedTH1 *h_recoMet_0BJets;
+  WrappedTH1 *h_recoMet_1BJets;
+  WrappedTH1 *h_recoMet_2BJets;
+  WrappedTH1 *h_recoMet_3BJets;
+  WrappedTH1 *h_recoMet_4BJets;
+  WrappedTH1 *h_recoMet_5plusBJets;
+
+
   // GenJets
   WrappedTH1 *h_GenJet_N_NoPreselections;
   WrappedTH1 *h_GenJet_N_AfterLeptonVeto;
@@ -304,6 +320,7 @@ REGISTER_SELECTOR(MetBreakDown);
 MetBreakDown::MetBreakDown(const ParameterSet& config, const TH1* skimCounters)
   : BaseSelector(config, skimCounters),
     cfg_Verbose(config.getParameter<bool>("verbose")),
+    fCommonPlots(config.getParameter<ParameterSet>("CommonPlots"), CommonPlots::kSignalAnalysis, fHistoWrapper),
     PSet_JetSelection(config.getParameter<ParameterSet>("JetSelection")),
     cfg_JetPtCut(config.getParameter<float>("JetSelection.jetPtCut")),
     cfg_JetEtaCut(config.getParameter<float>("JetSelection.jetEtaCut")),
@@ -316,8 +333,8 @@ MetBreakDown::MetBreakDown(const ParameterSet& config, const TH1* skimCounters)
     cfg_MuonPtCut(config.getParameter<float>("MuonSelection.muonPtCut")),
     cfg_MuonEtaCut(config.getParameter<float>("MuonSelection.muonEtaCut")),
     cfg_MuonNumberCut(config, "MuonSelection.muonNCut"),
-    PSet_HtSelection(config.getParameter<ParameterSet>("HtSelection")),
-    cfg_HtCut(config, "HtSelection.HtCut"),
+//    PSet_HtSelection(config.getParameter<ParameterSet>("HtSelection")),
+//    cfg_HtCut(config, "HtSelection.HtCut"),
     cfg_PtBinSetting(config.getParameter<ParameterSet>("CommonPlots.ptBins")),
     cfg_EtaBinSetting(config.getParameter<ParameterSet>("CommonPlots.etaBins")),
     cfg_PhiBinSetting(config.getParameter<ParameterSet>("CommonPlots.phiBins")),
@@ -326,15 +343,22 @@ MetBreakDown::MetBreakDown(const ParameterSet& config, const TH1* skimCounters)
     cfg_DeltaPhiBinSetting(config.getParameter<ParameterSet>("CommonPlots.deltaPhiBins")),
     cfg_DeltaRBinSetting(config.getParameter<ParameterSet>("CommonPlots.deltaRBins")),
     cAllEvents(fEventCounter.addCounter("All events")),
+    cTrigger(fEventCounter.addCounter("passed trigger")),
     cSubNoPreselections(fEventCounter.addSubCounter("Preselections", "All Events")),
     cSubPassedLeptonVeto(fEventCounter.addSubCounter("Preselections", "Lepton Veto")),
     cSubPassedJetsCut(fEventCounter.addSubCounter("Preselections", "Jets Cut")),
-    cSubPassedHtCut(fEventCounter.addSubCounter("Preselections","HT Cut")),
-    fCommonPlots(config.getParameter<ParameterSet>("CommonPlots"), CommonPlots::kSignalAnalysis, fHistoWrapper),
+    //cSubPassedHtCut(fEventCounter.addSubCounter("Preselections","HT Cut")),
     fElectronSelection(config.getParameter<ParameterSet>("ElectronSelection"),
                        fEventCounter, fHistoWrapper, &fCommonPlots, "Veto"),
     fMuonSelection(config.getParameter<ParameterSet>("MuonSelection"),
-                       fEventCounter, fHistoWrapper, &fCommonPlots, "Veto")
+                       fEventCounter, fHistoWrapper, &fCommonPlots, "Veto"),
+    fTauSelection(config.getParameter<ParameterSet>("TauSelection"),
+                       fEventCounter, fHistoWrapper, &fCommonPlots, "Veto"),
+    fJetSelection(config.getParameter<ParameterSet>("JetSelection"),
+                       fEventCounter, fHistoWrapper, &fCommonPlots, ""),
+    fBJetSelection(config.getParameter<ParameterSet>("BJetSelection"),
+                       fEventCounter, fHistoWrapper, &fCommonPlots, ""),
+    cSelected(fEventCounter.addCounter("Selected Events"))
 { }
 
 void MetBreakDown::book(TDirectory *dir) {
@@ -342,6 +366,9 @@ void MetBreakDown::book(TDirectory *dir) {
  
   fElectronSelection.bookHistograms(dir);
   fMuonSelection.bookHistograms(dir);
+  fTauSelection.bookHistograms(dir);
+  fJetSelection.bookHistograms(dir);
+  fBJetSelection.bookHistograms(dir);
 
   Table cuts("Variable | Jets | Electron | Muon | HT", "Text"); //LaTeX or Text
   cuts.AddRowColumn(0, "Pt (GeV/c)");
@@ -362,12 +389,12 @@ void MetBreakDown::book(TDirectory *dir) {
   cuts.AddRowColumn(2, PSet_JetSelection.getParameter<string>("jetNCutDirection") );
   cuts.AddRowColumn(2, PSet_ElectronSelection.getParameter<string>("electronNCutDirection") );
   cuts.AddRowColumn(2, PSet_MuonSelection.getParameter<string>("muonNCutDirection") );
-  cuts.AddRowColumn(2, PSet_HtSelection.getParameter<string>("HtCutDirection") );
+  //cuts.AddRowColumn(2, PSet_HtSelection.getParameter<string>("HtCutDirection") );
   //
   cuts.AddRowColumn(3, auxTools.ToString(PSet_JetSelection.getParameter<int>("jetNCutValue")) );
   cuts.AddRowColumn(3, auxTools.ToString(PSet_ElectronSelection.getParameter<int>("electronNCutValue")) );
   cuts.AddRowColumn(3, auxTools.ToString(PSet_MuonSelection.getParameter<int>("muonNCutValue")) );
-  cuts.AddRowColumn(3, PSet_HtSelection.getParameter<string>("HtCutValue") );
+  //cuts.AddRowColumn(3, PSet_HtSelection.getParameter<string>("HtCutValue") );
   //
   std::cout << "\n" << std::endl;
   cuts.Print();
@@ -610,7 +637,19 @@ void MetBreakDown::book(TDirectory *dir) {
 
 
 
+  // GenParticles: number of b quarks vs B Hadrons
+  h_bJets_met = fHistoWrapper.makeTH<TH2F>(HistoLevel::kVital, dir, "bJets_met", ";#N bJets;ME_{t}", 9, 0, 9, 10, 0, maxMet);
+  h_bJets_mht = fHistoWrapper.makeTH<TH2F>(HistoLevel::kVital, dir, "bJets_mht", ";#N bJets;MH_{t}", 9, 0, 9, 10, 0, maxMet);
 
+  h_nBJets = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "nBJets", ";# BJets", 10, 0, 10);
+
+  h_recoMet_0BJets     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMet_0BJets",     ";Reco E_{T}^{miss} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMet_1BJets     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMet_1BJets",     ";Reco E_{T}^{miss} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMet_2BJets     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMet_2BJets",     ";Reco E_{T}^{miss} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMet_3BJets     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMet_3BJets",     ";Reco E_{T}^{miss} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMet_4BJets     = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMet_4BJets",     ";Reco E_{T}^{miss} (GeV)", nBinsMet, minMet, maxMet);
+  h_recoMet_5plusBJets = fHistoWrapper.makeTH<TH1F>(HistoLevel::kVital, dir, "recoMet_5plusBJets", ";Reco E_{T}^{miss} (GeV)", nBinsMet, minMet, maxMet);
+  
 
 
   // GenJets
@@ -631,7 +670,8 @@ void MetBreakDown::process(Long64_t entry) {
 
   if ( !fEvent.isMC() ) return;
 
-  // Increment Counter(s)
+  fCommonPlots.initialize();
+  fCommonPlots.setFactorisationBinForEvent(std::vector<float> {});
   cAllEvents.increment();
 
   MCTools mcTools(fEvent);
@@ -669,9 +709,9 @@ void MetBreakDown::process(Long64_t entry) {
   if(0) std::cout << "=== Lepton Veto & Primary Vertex" << std::endl;
   int nElectrons = 0;
   int nMuons     = 0;
-  bool foundPV   = false;
   ROOT::Math::XYZPoint pv;
-/*
+/*bool foundPV   = false;
+
   // For-loop: All genParticles
   for (auto& p: fEvent.genparticles().getGenParticles()) {
 
@@ -704,36 +744,48 @@ void MetBreakDown::process(Long64_t entry) {
     else continue;
 
   }*/
+
+  // Lepton Veto
   const ElectronSelection::Data eData = fElectronSelection.analyze(fEvent);
   if (eData.hasIdentifiedElectrons())
     return;
+
   const MuonSelection::Data muData = fMuonSelection.analyze(fEvent);
   if (muData.hasIdentifiedMuons())
     return;
 
+  const TauSelection::Data tauData = fTauSelection.analyze(fEvent);
+  if (tauData.hasIdentifiedTaus())
+    return;
+
+  // Jet Selection
+  const JetSelection::Data jetData = fJetSelection.analyzeWithoutTau(fEvent);
+  if (!jetData.passedSelection())
+    return;
+
+  // BJet Selection
+  const BJetSelection::Data bjetData = fBJetSelection.analyze(fEvent, jetData);
+  //if (!bjetData.passedSelection())
+  //  return;
+
+  fCommonPlots.fillControlPlotsAfterTopologicalSelections(fEvent, true);
 
   ///////////////////////////////////////////////////////////////////////////
   // Preselection Cuts (python/parameters/hplus2tbAnalysis.py)
   ///////////////////////////////////////////////////////////////////////////
-  if(0) std::cout << "=== Preselection Cuts" << std::endl;
-  cSubNoPreselections.increment();
-  h_GenJet_N_NoPreselections->Fill(nSelJets);
+  // if(0) std::cout << "=== Preselection Cuts" << std::endl;
 
-  // Lepton Veto
+ /* // Lepton Veto
   if ( !cfg_ElectronNumberCut.passedCut(nElectrons) ) return;
   if ( !cfg_MuonNumberCut.passedCut(nMuons) ) return;
-  cSubPassedLeptonVeto.increment();
-  h_GenJet_N_AfterLeptonVeto->Fill(nSelJets);
 
   // Jet Selection
   if ( !cfg_JetNumberCut.passedCut(nSelJets) ) return;
-  cSubPassedJetsCut.increment();
-  h_GenJet_N_AfterLeptonVetoNJetsCut->Fill(nSelJets);
 
   // HT Selection
   if ( !cfg_HtCut.passedCut(genJ_HT) ) return;
   cSubPassedHtCut.increment();
-  h_GenJet_N_AfterPreselections->Fill(nSelJets);
+  h_GenJet_N_AfterPreselections->Fill(nSelJets);*/
 
 
   ///////////////////////////////////////////////////////////////////////////
@@ -1472,6 +1524,32 @@ void MetBreakDown::process(Long64_t entry) {
 
   h_genMHT->Fill(genMHT);
   h_recoMHT->Fill(recoMHT);
+
+  h_bJets_met->Fill(bjetData.getNumberOfSelectedBJets(), fEvent.met().et());
+  h_bJets_mht->Fill(bjetData.getNumberOfSelectedBJets(), recoMHT);
+
+  h_nBJets->Fill(bjetData.getNumberOfSelectedBJets());
+
+  switch (bjetData.getNumberOfSelectedBJets()) {
+  case 0:
+  	h_recoMet_0BJets->Fill(fEvent.met().et());
+  	break;
+  case 1:
+  	h_recoMet_1BJets->Fill(fEvent.met().et());
+  	break;
+  case 2:
+  	h_recoMet_2BJets->Fill(fEvent.met().et());
+  	break;
+  case 3:
+  	h_recoMet_3BJets->Fill(fEvent.met().et());
+  	break;
+  case 4:
+  	h_recoMet_4BJets->Fill(fEvent.met().et());
+  	break;
+  default:
+  	h_recoMet_5plusBJets->Fill(fEvent.met().et());
+  	break;
+  }
 
   return;
 }

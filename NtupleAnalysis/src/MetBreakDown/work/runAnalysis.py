@@ -141,10 +141,14 @@ def main():
 
     allSelections.ElectronSelection.electronNCutValue = 0
     allSelections.ElectronSelection.electronNCutDirection = ">="
+    allSelections.ElectronSelection.electronPtCut = 10
     allSelections.MuonSelection.muonNCutValue = 0
     allSelections.MuonSelection.muonNCutDirection = ">="
+    allSelections.MuonSelection.muonPtCut = 10
     allSelections.JetSelection.jetNCutValue = 6
     allSelections.JetSelection.jetNCutDirection = ">="
+    allSelections.TauSelection.tauPtCut = 40
+    allSelections.TauSelection.tauEtaCut = 2.5
     
     # ================================================================================================
     # Add Analysis Variations
